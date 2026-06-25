@@ -30,8 +30,6 @@ async function setupNativePush(userId?: string) {
   await PushNotifications.register();
 
   PushNotifications.addListener('registration', async (token: { value: string }) => {
-    console.log('Push registration success, token: ' + token.value);
-
     // On iOS, this 'token' is usually the APNS token.
     // Firebase can send to APNS tokens if the APNS key is uploaded to Firebase Console.
     if (userId) {
@@ -44,11 +42,9 @@ async function setupNativePush(userId?: string) {
   });
 
   PushNotifications.addListener('pushNotificationReceived', (notification: any) => {
-    console.log('Push received: ' + JSON.stringify(notification));
   });
 
   PushNotifications.addListener('pushNotificationActionPerformed', (notification: any) => {
-    console.log('Push action performed: ' + JSON.stringify(notification));
   });
 }
 
@@ -62,14 +58,12 @@ async function setupWebPush(userId?: string) {
     });
 
     if (token) {
-      console.log('Web Push token:', token);
       if (userId) {
         await registerTokenWithBackend(userId, token, 'web');
       }
     }
 
     onMessage(messaging, (payload) => {
-      console.log('Message received. ', payload);
       // Handle foreground message
     });
   } catch (err) {

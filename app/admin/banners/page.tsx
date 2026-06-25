@@ -6,24 +6,23 @@ import { supabase } from '@/lib/supabase'
 
 type Banner = {
   id: string
-  title: string | null
+  title: string
   subtitle: string | null
-  image: string | null
-  mobile_image: string | null
-  button_text: string | null
-  button_link: string | null
+  image_url: string | null
+  cta_text: string | null
+  cta_url: string | null
   display_order: number
   is_active: boolean
   created_at: string
+  updated_at: string
 }
 
-const EMPTY: Omit<Banner, 'id' | 'created_at'> = {
+const EMPTY: Omit<Banner, 'id' | 'created_at' | 'updated_at'> = {
   title: '',
   subtitle: '',
-  image: '',
-  mobile_image: '',
-  button_text: '',
-  button_link: '',
+  image_url: '',
+  cta_text: '',
+  cta_url: '',
   display_order: 0,
   is_active: true,
 }
@@ -33,14 +32,14 @@ export default function BannersPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [modal, setModal] = useState<'create' | 'edit' | null>(null)
-  const [form, setForm] = useState<Omit<Banner, 'id' | 'created_at'>>(EMPTY)
+  const [form, setForm] = useState<Omit<Banner, 'id' | 'created_at' | 'updated_at'>>(EMPTY)
   const [editId, setEditId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   async function load() {
     setLoading(true)
     const { data } = await supabase.from('banners').select('*').order('display_order', { ascending: true })
-    setBanners(data as Banner[] ?? [])
+    setBanners((data as any) as Banner[] ?? [])
     setLoading(false)
   }
 
@@ -57,10 +56,9 @@ export default function BannersPage() {
     setForm({
       title: b.title ?? '',
       subtitle: b.subtitle ?? '',
-      image: b.image ?? '',
-      mobile_image: b.mobile_image ?? '',
-      button_text: b.button_text ?? '',
-      button_link: b.button_link ?? '',
+      image_url: b.image_url ?? '',
+      cta_text: b.cta_text ?? '',
+      cta_url: b.cta_url ?? '',
       display_order: b.display_order,
       is_active: b.is_active,
     })
@@ -70,7 +68,7 @@ export default function BannersPage() {
   }
 
   async function handleSave() {
-    if (!form.image?.trim()) { setError('Image URL is required'); return }
+    if (!form.image_url?.trim()) { setError('Image URL is required'); return }
     setSaving(true)
     setError('')
     let err
@@ -135,8 +133,8 @@ export default function BannersPage() {
           ) : banners.map((b) => (
             <div key={b.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="relative h-40 bg-gray-100">
-                {b.image ? (
-                  <img src={b.image} alt={b.title ?? ''} className="w-full h-full object-cover" />
+                {b.image_url ? (
+                  <img src={b.image_url} alt={b.title ?? ''} className="w-full h-full object-cover" />
                 ) : (
                   <div className="flex items-center justify-center h-full text-gray-300">
                     <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -181,12 +179,11 @@ export default function BannersPage() {
             <div className="px-6 py-5 space-y-4">
               {error && <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-xl px-4 py-2">{error}</p>}
 
-              <Field label="Desktop Image URL *" value={form.image ?? ''} onChange={(v) => setForm((f) => ({ ...f, image: v }))} placeholder="https://..." mono />
-              <Field label="Mobile Image URL" value={form.mobile_image ?? ''} onChange={(v) => setForm((f) => ({ ...f, mobile_image: v }))} placeholder="https://... (optional)" mono />
+              <Field label="Banner Image URL *" value={form.image_url ?? ''} onChange={(v) => setForm((f) => ({ ...f, image_url: v }))} placeholder="https://..." mono />
 
-              {form.image && (
+              {form.image_url && (
                 <div className="h-32 rounded-xl overflow-hidden bg-gray-100">
-                  <img src={form.image} alt="preview" className="w-full h-full object-cover" />
+                  <img src={form.image_url} alt="preview" className="w-full h-full object-cover" />
                 </div>
               )}
 
@@ -204,8 +201,8 @@ export default function BannersPage() {
               </div>
               <Field label="Subtitle" value={form.subtitle ?? ''} onChange={(v) => setForm((f) => ({ ...f, subtitle: v }))} placeholder="Supporting text" />
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Button Text" value={form.button_text ?? ''} onChange={(v) => setForm((f) => ({ ...f, button_text: v }))} placeholder="Shop Now" />
-                <Field label="Button Link" value={form.button_link ?? ''} onChange={(v) => setForm((f) => ({ ...f, button_link: v }))} placeholder="/products" mono />
+                <Field label="CTA Text" value={form.cta_text ?? ''} onChange={(v) => setForm((f) => ({ ...f, cta_text: v }))} placeholder="Shop Now" />
+                <Field label="CTA Link" value={form.cta_url ?? ''} onChange={(v) => setForm((f) => ({ ...f, cta_url: v }))} placeholder="/products" mono />
               </div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.is_active} onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))} className="rounded" />

@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: false,
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: '**' },
@@ -10,7 +9,6 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
   experimental: {
-    useWasmBinary: true,
     serverActions: {
       bodySizeLimit: '10mb',
     },

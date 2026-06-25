@@ -4,23 +4,23 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "dev": "npx next dev",
+    "build": "npx next build",
+    "start": "npx next start",
+    "lint": "npx next lint"
   },
   "dependencies": {
-    "@capacitor/android": "^8.3.3",
-    "@capacitor/app": "^8.1.0",
-    "@capacitor/cli": "^8.3.3",
-    "@capacitor/core": "^8.3.3",
-    "@capacitor/ios": "^8.3.3",
-    "@capacitor/keyboard": "^8.0.3",
-    "@capacitor/push-notifications": "^6.0.0",
-    "@capacitor/splash-screen": "^8.0.1",
-    "@capacitor/status-bar": "^8.0.2",
+    "@capacitor/android": "6.2.1",
+    "@capacitor/app": "6.0.3",
+    "@capacitor/cli": "6.2.1",
+    "@capacitor/core": "6.2.1",
+    "@capacitor/ios": "6.2.1",
+    "@capacitor/keyboard": "6.0.4",
+    "@capacitor/push-notifications": "6.0.5",
+    "@capacitor/splash-screen": "6.0.4",
+    "@capacitor/status-bar": "6.0.3",
+    "@capacitor-community/apple-sign-in": "6.0.0",
     "@netlify/plugin-nextjs": "^5.15.9",
-    "@next/swc-wasm-nodejs": "^16.2.6",
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.39.3",
     "bcryptjs": "^2.4.3",
@@ -29,7 +29,6 @@
     "lucide-react": "^0.344.0",
     "next": "^14.2.0",
     "next-auth": "^4.24.0",
-    "onesignal-capacitor-plugin": "^5.1.0",
     "papaparse": "^5.4.1",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
@@ -47,6 +46,7 @@
     "eslint-config-next": "^14.2.0",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "@capacitor/assets": "^3.0.5"
   }
 }

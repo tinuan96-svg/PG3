@@ -1,4 +1,6 @@
 import { supabase } from './supabase'
+import { Capacitor } from '@capacitor/core'
+import { SignInWithApple } from '@capacitor-community/apple-sign-in'
 
 export async function signUp(email: string, password: string, name: string) {
   const { data, error } = await supabase.auth.signUp({
@@ -43,11 +45,44 @@ export async function signInWithGoogle() {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: Capacitor.isNativePlatform()
+        ? 'com.pocketgrocery.app://auth/callback'
+        : `${window.location.origin}/auth/callback`,
     },
   })
   if (error) throw error
   return data
+}
+
+export async function signInWithApple() {
+  if (Capacitor.getPlatform() === 'ios') {
+    try {
+      const result = await SignInWithApple.authorize({
+        clientId: 'com.pocketgrocery.app',
+        redirectURI: 'https://pocketgrocery.com/auth/callback',
+        scopes: 'email name',
+      })
+
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: result.response.identityToken!,
+      })
+      if (error) throw error
+      return data
+    } catch (err) {
+      console.error('Apple Sign In failed:', err)
+      throw err
+    }
+  } else {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    })
+    if (error) throw error
+    return data
+  }
 }
 
 export async function signOut() {

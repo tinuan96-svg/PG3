@@ -23,7 +23,7 @@ function OrderSuccessContent() {
       const { data } = await supabase
         .from('orders')
         .select('order_number, total, customer_name, payment_method, payment_status')
-        .eq('order_number', orderNumber)
+        .eq('order_number', orderNumber as string)
         .maybeSingle()
       setOrder(data as any)
       setLoading(false)

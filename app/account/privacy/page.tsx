@@ -6,6 +6,79 @@ import AccountLayout from '@/components/AccountLayout'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
+interface ConsentState {
+  analytics: boolean
+  personalisation: boolean
+  third_party_sharing: boolean
+  data_export_requested: boolean
+}
+
+const DEFAULT: ConsentState = {
+  analytics: true,
+  personalisation: true,
+  third_party_sharing: false,
+  data_export_requested: false,
+}
+
+function Toggle({
+  checked,
+  onChange,
+  disabled,
+}: {
+  checked: boolean
+  onChange: (v: boolean) => void
+  disabled?: boolean
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      disabled={disabled}
+      onClick={() => !disabled && onChange(!checked)}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+        checked ? '' : 'bg-gray-200'
+      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+      style={checked ? { backgroundColor: '#5FAE9B' } : {}}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  )
+}
+
+function SectionRow({
+  title,
+  description,
+  checked,
+  onChange,
+  locked,
+  lockedReason,
+}: {
+  title: string
+  description: string
+  checked: boolean
+  onChange: (v: boolean) => void
+  locked?: boolean
+  lockedReason?: string
+}) {
+  return (
+    <div className="flex items-start justify-between py-5">
+      <div className="flex-1 mr-4">
+        <p className="text-sm font-bold text-gray-800">{title}</p>
+        <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+          {locked ? <span className="text-amber-600 font-medium">{lockedReason} </span> : null}
+          {description}
+        </p>
+      </div>
+      <Toggle checked={checked} onChange={onChange} disabled={locked} />
+    </div>
+  )
+}
+
 export default function PrivacySettingsPage() {
   const { user } = useAuth()
   const [consent, setConsent] = useState<ConsentState>(DEFAULT)
@@ -35,7 +108,7 @@ export default function PrivacySettingsPage() {
       .eq('user_profile_id', prof.id)
       .order('created_at', { ascending: false })
 
-    const events: { event_type: string; metadata: Record<string, unknown> }[] = data ?? []
+    const events = (data as any as { event_type: string; metadata: Record<string, any> }[]) ?? []
 
     const latestConsent: Partial<ConsentState> = {}
     const seen = new Set<string>()

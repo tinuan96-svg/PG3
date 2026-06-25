@@ -9,8 +9,6 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
   const router = useRouter()
 
   useEffect(() => {
-    console.log('[AdminGuard] mounted — user:', !!user, 'profile role:', profile?.role, 'loading:', loading)
-    return () => console.log('[AdminGuard] unmounted — this should NOT happen during normal admin navigation')
   }, [])
 
   useEffect(() => {

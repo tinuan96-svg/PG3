@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "6W9P4L2V5G.com.pocketgrocery.app",
+        "paths": ["*"]
+      }
+    ]
+  }
+}

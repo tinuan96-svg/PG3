@@ -92,8 +92,6 @@ function getLocalClient(accessToken?: string): SupabaseClient {
 function centralhubUpdateFields(chProduct: CentralHubProduct, now: string) {
   const costPrice = Number(chProduct.price ?? 0)
 
-  console.log('Product brand:', chProduct.brand)
-
   return {
     name:                    chProduct.name || 'Unnamed Product',
     cost_price:              costPrice,

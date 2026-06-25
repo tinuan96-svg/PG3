@@ -1,15 +1,9 @@
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
-import Script from 'next/script'
+import dynamic from 'next/dynamic'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-import CookieConsent from '@/components/CookieConsent'
-import PocketNavigation from '@/components/PocketNavigation'
-import PocketButton from '@/components/PocketButton'
-import FlyToAnimation from '@/components/FlyToAnimation'
-import AIChatbot from '@/components/AIChatbot'
-import FestivalBanner from '@/components/FestivalBanner'
 import { AuthProvider } from '@/lib/auth-context'
 import { PocketProvider } from '@/lib/pocket-context'
 import { WishlistProvider } from '@/lib/wishlist-context'
@@ -24,6 +18,13 @@ import {
   SITE_DESCRIPTION,
   DEFAULT_OG_IMAGE,
 } from '@/lib/seo'
+
+const CookieConsent = dynamic(() => import('@/components/CookieConsent'), { ssr: false })
+const AIChatbot = dynamic(() => import('@/components/AIChatbot'), { ssr: false })
+const FlyToAnimation = dynamic(() => import('@/components/FlyToAnimation'), { ssr: false })
+const PocketButton = dynamic(() => import('@/components/PocketButton'), { ssr: false })
+const FestivalBanner = dynamic(() => import('@/components/FestivalBanner'), { ssr: false })
+const PocketNavigation = dynamic(() => import('@/components/PocketNavigation'), { ssr: false })
 
 const inter = Inter({ subsets: ['latin'] })
 

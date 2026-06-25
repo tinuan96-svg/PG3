@@ -13,6 +13,7 @@
     touch-action: pan-y;
     /* Force height to viewport to prevent "moving" layout */
     height: 100%;
+    min-height: -webkit-fill-available;
     max-height: 100vh;
   }
 
@@ -167,3 +168,18 @@
 .pocket-nav-item:active .w-10 {
   transform: scale(0.9);
 }
+
+/* ── Safe Area Helpers ── */
+.safe-pt {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-mt {
+  margin-top: env(safe-area-inset-top);
+}
+.safe-mb {
+  margin-bottom: env(safe-area-inset-bottom);
+}
+

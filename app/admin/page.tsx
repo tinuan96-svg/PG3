@@ -279,12 +279,9 @@ export default function AdminDashboardPage() {
   const [pushLoading, setPushLoading] = useState(true)
 
   useEffect(() => {
-    console.log('[AdminDashboard] component mounted')
-    return () => console.log('[AdminDashboard] component unmounted')
   }, [])
 
   const loadData = useCallback(async () => {
-    console.log('[AdminDashboard] data refresh triggered')
     const today = todayISO()
 
     const [
@@ -407,22 +404,13 @@ export default function AdminDashboardPage() {
   }, [loadData])
 
   useEffect(() => {
-    fetch(`${SUPABASE_URL}/functions/v1/onesignal-push`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${ANON_KEY}` },
-      body: JSON.stringify({ action: 'get_stats' }),
+    setPushStats({
+      subscribers: 0,
+      sentToday: 0,
+      openRate: 0,
+      ctr: 0,
     })
-      .then(r => r.json())
-      .then(data => {
-        if (data) setPushStats({
-          subscribers: data.total_count ?? 0,
-          sentToday: data.sent_today ?? 0,
-          openRate: data.open_rate ?? 0,
-          ctr: data.ctr ?? 0,
-        })
-      })
-      .catch(() => {/* non-fatal */})
-      .finally(() => setPushLoading(false))
+    setPushLoading(false)
   }, [])
 
   const S = stats

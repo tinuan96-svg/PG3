@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.android.tools.build:gradle:8.13.2'
         classpath 'com.google.gms:google-services:4.5.0'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -21,6 +21,48 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (project.android.hasProperty('buildTypes')) {
+                    project.android.buildTypes {
+                        debug {
+                            matchingFallbacks = ['debug', 'release']
+                        }
+                        release {
+                            matchingFallbacks = ['release']
+                        }
+                    }
+                }
+                // Capacitor plugins often need BuildConfig
+                if (project.android.hasProperty('buildFeatures')) {
+                    project.android.buildFeatures {
+                        buildConfig = true
+                    }
+                }
+
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+
+                // Help with missing namespace errors in some plugins
+                if (project.android.namespace == null) {
+                   if (project.name.startsWith('capacitor-')) {
+                       def name = project.name.substring(10).replace('-', '.')
+                       if (['android', 'app', 'keyboard', 'splash.screen', 'status.bar'].contains(name)) {
+                           project.android.namespace = "com.getcapacitor." + name
+                       } else {
+                           project.android.namespace = "com.getcapacitor.community." + name
+                       }
+                   }
+                }
+            }
+        }
     }
 }
 
