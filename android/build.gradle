@@ -7,7 +7,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.13.0'
+        classpath 'com.android.tools.build:gradle:8.7.3'
         classpath 'com.google.gms:google-services:4.5.0'
 
         // NOTE: Do not place your application dependencies here; they belong
@@ -21,6 +21,43 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (project.android.hasProperty('buildTypes')) {
+                    project.android.buildTypes {
+                        debug {
+                            matchingFallbacks = ['debug', 'release']
+                        }
+                        release {
+                            matchingFallbacks = ['release']
+                        }
+                    }
+                }
+                // Capacitor plugins often need BuildConfig
+                if (project.android.hasProperty('buildFeatures')) {
+                    project.android.buildFeatures {
+                        buildConfig = true
+                    }
+                }
+
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_21
+                    targetCompatibility JavaVersion.VERSION_21
+                }
+
+                // Help with missing namespace errors in some plugins
+                if (project.android.namespace == null) {
+                   if (project.name.startsWith('capacitor-')) {
+                       project.android.namespace = "com.getcapacitor.community." + project.name.substring(10).replace('-', '.')
+                   }
+                }
+            }
+        }
     }
 }
 
