@@ -5,9 +5,26 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const error = searchParams.get('error')
+  const errorDescription = searchParams.get('error_description')
   const next = searchParams.get('next') ?? '/'
 
-  if (code) {
+  // Log Google OAuth errors
+  if (error) {
+    console.error('[auth callback] Google OAuth error:', {
+      error,
+      errorDescription,
+      timestamp: new Date().toISOString(),
+    })
+    return NextResponse.redirect(`${origin}/auth/auth-code-error#error=${encodeURIComponent(error)}`)
+  }
+
+  if (!code) {
+    console.error('[auth callback] No authorization code received')
+    return NextResponse.redirect(`${origin}/auth/auth-code-error#no_code`)
+  }
+
+  try {
     const cookieStore = cookies()
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -26,15 +43,27 @@ export async function GET(request: Request) {
         },
       }
     )
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      // Use origin for absolute redirect if necessary, or just path if next starts with /
-      const redirectUrl = next.startsWith('http') ? next : `${origin}${next}`
-      return NextResponse.redirect(redirectUrl)
-    }
-    console.error('[auth callback] exchange error:', error)
-  }
 
-  // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    
+    if (exchangeError) {
+      console.error('[auth callback] Session exchange failed:', {
+        message: exchangeError.message,
+        status: exchangeError.status,
+        timestamp: new Date().toISOString(),
+        code: code.substring(0, 10) + '...',
+      })
+      return NextResponse.redirect(`${origin}/auth/auth-code-error#exchange_failed`)
+    }
+
+    // Exchange successful
+    const redirectUrl = next.startsWith('http') ? next : `${origin}${next}`
+    return NextResponse.redirect(redirectUrl)
+  } catch (err) {
+    console.error('[auth callback] Unexpected error:', {
+      message: err instanceof Error ? err.message : String(err),
+      timestamp: new Date().toISOString(),
+    })
+    return NextResponse.redirect(`${origin}/auth/auth-code-error#server_error`)
+  }
 }
