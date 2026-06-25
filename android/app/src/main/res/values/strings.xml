@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PocketGrocery</string>
+    <string name="title_activity_main">PocketGrocery</string>
+    <string name="package_name">com.pocketgrocery.app</string>
+    <string name="custom_url_scheme">com.pocketgrocery.app</string>
+    <string name="google_client_id">75115921613-ic6tp3qu8hr6hheh5i4e4g4i2t1d8p9u.apps.googleusercontent.com</string>
+</resources>

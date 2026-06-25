@@ -1,0 +1,44 @@
+{
+	"appId": "com.pocketgrocery.app",
+	"appName": "PocketGrocery",
+	"server": {
+		"url": "https://pocketgrocery.com",
+		"cleartext": false,
+		"androidScheme": "https"
+	},
+	"ios": {
+		"contentInset": "automatic"
+	},
+	"android": {
+		"allowMixedContent": true,
+		"backgroundColor": "#ffffff"
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 2000,
+			"backgroundColor": "#ffffff",
+			"showSpinner": false
+		},
+		"GoogleAuth": {
+			"scopes": [
+				"profile",
+				"email"
+			],
+			"androidClientId": "75115921613-ic6tp3qu8hr6hheh5i4e4g4i2t1d8p9u.apps.googleusercontent.com",
+			"forceCodeForRefreshToken": true
+		},
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		}
+	},
+	"packageClassList": [
+		"AppPlugin",
+		"KeyboardPlugin",
+		"SplashScreenPlugin",
+		"StatusBarPlugin"
+	]
+}

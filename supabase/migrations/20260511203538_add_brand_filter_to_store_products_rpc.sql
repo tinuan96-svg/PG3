@@ -1,0 +1,117 @@
+
+/*
+  # Add brand filter to pocketgrocery_get_store_products RPC
+
+  ## Change
+  Adds a p_brand_slug parameter that filters products by brand slug
+  via a JOIN to the brands table (brands.slug = p_brand_slug).
+  Also accepts p_brand_name as a fallback text match on products.brand.
+
+  All existing callers that don't pass these params are unaffected (both default to NULL).
+*/
+
+CREATE OR REPLACE FUNCTION pocketgrocery_get_store_products(
+  p_store_slug       text,
+  p_category_id      uuid    DEFAULT NULL,
+  p_main_category_id uuid    DEFAULT NULL,
+  p_in_stock_only    boolean DEFAULT false,
+  p_search           text    DEFAULT NULL,
+  p_sort             text    DEFAULT 'default',
+  p_limit            int     DEFAULT 40,
+  p_offset           int     DEFAULT 0,
+  p_brand_slug       text    DEFAULT NULL,
+  p_brand_name       text    DEFAULT NULL
+)
+RETURNS TABLE (
+  product_id          uuid,
+  slug                text,
+  name                text,
+  description         text,
+  image_url           text,
+  gallery_images      text[],
+  price               numeric,
+  original_price      numeric,
+  discount_percentage numeric,
+  stock               int,
+  in_stock            boolean,
+  has_variants        boolean,
+  category_id         uuid,
+  main_category_id    uuid,
+  is_bestseller       boolean,
+  is_deal             boolean,
+  is_new_arrival      boolean,
+  is_trending         boolean,
+  sales_last_30_days  int,
+  velocity_score      numeric
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+WITH store_cte AS (
+  SELECT id FROM public.stores WHERE slug = p_store_slug LIMIT 1
+),
+latest_metrics AS (
+  SELECT DISTINCT ON (pm.product_id)
+    pm.product_id, pm.sales_last_30_days, pm.velocity_score
+  FROM public.product_metrics pm
+  JOIN store_cte st ON st.id = pm.store_id
+  ORDER BY pm.product_id, pm.metrics_date DESC
+),
+base AS (
+  SELECT
+    p.id AS product_id, p.slug,
+    COALESCE(sp.name_override, p.name) AS name,
+    COALESCE(sp.description_override, p.description) AS description,
+    COALESCE(
+      p.image_main, p.image_url,
+      resolve_product_image(sp.image_cdn_url),
+      resolve_product_image(sp.image_override),
+      p.image_medium, p.image_thumbnail
+    ) AS image_url,
+    COALESCE(sp.gallery_images_override, p.gallery_images) AS gallery_images,
+    COALESCE(
+      NULLIF(sp.price_override, 0),
+      NULLIF(p.price, 0),
+      (SELECT MIN(pv.price) FROM public.product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true)
+    ) AS price,
+    COALESCE(
+      NULLIF(p.original_price, 0),
+      (SELECT MAX(pv.price) FROM public.product_variants pv WHERE pv.product_id = p.id AND pv.is_active = true)
+    ) AS original_price,
+    p.discount_percentage,
+    COALESCE(sp.current_stock, p.stock) AS stock,
+    (COALESCE(sp.current_stock, p.stock, 0) > 0) AS in_stock,
+    p.has_variants, p.category_id, p.main_category_id,
+    COALESCE(pmt.is_best_seller, p.is_bestseller, false) AS is_bestseller,
+    COALESCE(pmt.is_deal, p.is_deal, false) AS is_deal,
+    COALESCE(pmt.is_new_arrival, p.is_new_arrival, false) AS is_new_arrival,
+    COALESCE(pmt.is_trending, p.is_hot_product, false) AS is_trending,
+    lm.sales_last_30_days, lm.velocity_score
+  FROM store_cte st
+  JOIN public.store_products sp ON sp.store_id = st.id AND sp.is_active = true
+  JOIN public.products p ON p.id = sp.product_id AND p.is_active = true
+  LEFT JOIN public.brands b ON b.id = p.brand_id
+  LEFT JOIN public.product_marketing_tags pmt ON pmt.store_id = st.id AND pmt.product_id = p.id
+  LEFT JOIN latest_metrics lm ON lm.product_id = p.id
+  WHERE
+    (p_category_id IS NULL OR p.category_id = p_category_id)
+    AND (p_main_category_id IS NULL OR p.main_category_id = p_main_category_id)
+    AND (p_in_stock_only = false OR COALESCE(sp.current_stock, p.stock, 0) > 0)
+    AND (p_brand_slug IS NULL OR b.slug = p_brand_slug)
+    AND (p_brand_name IS NULL OR p.brand ILIKE p_brand_name)
+    AND (p_search IS NULL OR p_search = ''
+      OR COALESCE(sp.name_override, p.name) ILIKE '%' || p_search || '%'
+      OR COALESCE(sp.description_override, p.description) ILIKE '%' || p_search || '%')
+)
+SELECT * FROM base
+ORDER BY
+  CASE WHEN p_sort = 'price_asc'  THEN price END ASC  NULLS LAST,
+  CASE WHEN p_sort = 'price_desc' THEN price END DESC NULLS LAST,
+  CASE WHEN p_sort = 'newest'     THEN product_id::text END DESC,
+  CASE WHEN p_sort = 'popular'    THEN COALESCE(velocity_score, 0) END DESC,
+  CASE WHEN p_sort = 'popular'    THEN COALESCE(sales_last_30_days, 0) END DESC,
+  product_id DESC
+LIMIT  GREATEST(p_limit, 1)
+OFFSET GREATEST(p_offset, 0);
+$$;
