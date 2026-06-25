@@ -304,7 +304,7 @@ export default function SavedAddressesPage() {
   const load = useCallback(async () => {
     if (!user) return
     setLoading(true)
-    const { data } = await (supabase as any)
+    const { data } = await supabase
       .from('customer_addresses')
       .select('*')
       .eq('customer_id', user.id)
@@ -319,7 +319,7 @@ export default function SavedAddressesPage() {
   async function handleSave(form: FormState, id?: string) {
     if (!user) return
     if (id) {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('customer_addresses')
         .update({ ...form, postcode: form.postcode.toUpperCase() })
         .eq('id', id)
@@ -327,7 +327,7 @@ export default function SavedAddressesPage() {
       if (error) throw new Error(error.message)
       showToast('Address updated')
     } else {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('customer_addresses')
         .insert({ ...form, postcode: form.postcode.toUpperCase(), customer_id: user.id })
       if (error) throw new Error(error.message)
@@ -338,7 +338,7 @@ export default function SavedAddressesPage() {
 
   async function handleDelete(id: string) {
     if (!user) return
-    await (supabase as any)
+    await supabase
       .from('customer_addresses')
       .delete()
       .eq('id', id)
@@ -350,7 +350,7 @@ export default function SavedAddressesPage() {
 
   async function handleSetDefault(id: string) {
     if (!user) return
-    await (supabase as any)
+    await supabase
       .from('customer_addresses')
       .update({ is_default: true })
       .eq('id', id)

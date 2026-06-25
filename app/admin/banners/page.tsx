@@ -39,9 +39,8 @@ export default function BannersPage() {
 
   async function load() {
     setLoading(true)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = await (supabase as any).from('banners').select('*').order('display_order', { ascending: true })
-    setBanners(data ?? [])
+    const { data } = await supabase.from('banners').select('*').order('display_order', { ascending: true })
+    setBanners(data as Banner[] ?? [])
     setLoading(false)
   }
 
@@ -75,12 +74,10 @@ export default function BannersPage() {
     setSaving(true)
     setError('')
     let err
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any
     if (modal === 'create') {
-      ;({ error: err } = await db.from('banners').insert(form))
+      ;({ error: err } = await supabase.from('banners').insert(form))
     } else {
-      ;({ error: err } = await db.from('banners').update(form).eq('id', editId!))
+      ;({ error: err } = await supabase.from('banners').update(form).eq('id', editId!))
     }
     setSaving(false)
     if (err) { setError(err.message); return }
@@ -89,15 +86,13 @@ export default function BannersPage() {
   }
 
   async function handleToggle(id: string, val: boolean) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from('banners').update({ is_active: val }).eq('id', id)
+    await supabase.from('banners').update({ is_active: val }).eq('id', id)
     setBanners((prev) => prev.map((b) => b.id === id ? { ...b, is_active: val } : b))
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this banner?')) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from('banners').delete().eq('id', id)
+    await supabase.from('banners').delete().eq('id', id)
     setBanners((prev) => prev.filter((b) => b.id !== id))
   }
 

@@ -45,9 +45,8 @@ export default function AnnouncementsPage() {
 
   async function load() {
     setLoading(true)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = await (supabase as any).from('announcements').select('*').order('created_at', { ascending: false })
-    setAnnouncements(data ?? [])
+    const { data } = await supabase.from('announcements').select('*').order('created_at', { ascending: false })
+    setAnnouncements(data as Announcement[] ?? [])
     setLoading(false)
   }
 
@@ -90,12 +89,10 @@ export default function AnnouncementsPage() {
       ends_at: form.ends_at || null,
     }
     let err
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any
     if (modal === 'create') {
-      ;({ error: err } = await db.from('announcements').insert(payload))
+      ;({ error: err } = await supabase.from('announcements').insert(payload))
     } else {
-      ;({ error: err } = await db.from('announcements').update(payload).eq('id', editId!))
+      ;({ error: err } = await supabase.from('announcements').update(payload).eq('id', editId!))
     }
     setSaving(false)
     if (err) { setError(err.message); return }
@@ -104,15 +101,13 @@ export default function AnnouncementsPage() {
   }
 
   async function handleToggle(id: string, val: boolean) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from('announcements').update({ is_active: val }).eq('id', id)
+    await supabase.from('announcements').update({ is_active: val }).eq('id', id)
     setAnnouncements((prev) => prev.map((a) => a.id === id ? { ...a, is_active: val } : a))
   }
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this announcement?')) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase as any).from('announcements').delete().eq('id', id)
+    await supabase.from('announcements').delete().eq('id', id)
     setAnnouncements((prev) => prev.filter((a) => a.id !== id))
   }
 

@@ -6,67 +6,6 @@ import AccountLayout from '@/components/AccountLayout'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as any
-
-interface ConsentState {
-  analytics: boolean
-  personalisation: boolean
-  third_party_sharing: boolean
-  data_export_requested: boolean
-}
-
-const DEFAULT: ConsentState = {
-  analytics: false,
-  personalisation: false,
-  third_party_sharing: false,
-  data_export_requested: false,
-}
-
-function Toggle({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => !disabled && onChange(!checked)}
-      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-      style={{ backgroundColor: checked ? '#5FAE9B' : '#D1D5DB' }}
-    >
-      <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-6' : 'translate-x-1'}`} />
-    </button>
-  )
-}
-
-function SectionRow({
-  title,
-  description,
-  checked,
-  onChange,
-  locked,
-  lockedReason,
-}: {
-  title: string
-  description: string
-  checked: boolean
-  onChange: (v: boolean) => void
-  locked?: boolean
-  lockedReason?: string
-}) {
-  return (
-    <div className="flex items-start justify-between py-4 gap-4">
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800">{title}</p>
-        <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">
-          {locked ? lockedReason : description}
-        </p>
-      </div>
-      <Toggle checked={checked} onChange={onChange} disabled={locked} />
-    </div>
-  )
-}
-
 export default function PrivacySettingsPage() {
   const { user } = useAuth()
   const [consent, setConsent] = useState<ConsentState>(DEFAULT)
@@ -81,7 +20,7 @@ export default function PrivacySettingsPage() {
     if (!user) return
     setLoading(true)
 
-    const { data: prof } = await db
+    const { data: prof } = await supabase
       .from('user_profiles')
       .select('id')
       .eq('auth_user_id', user.id)
@@ -90,8 +29,8 @@ export default function PrivacySettingsPage() {
     if (!prof) { setLoading(false); return }
     setProfileId(prof.id)
 
-    const { data } = await db
-      .from('data_privacy_logs')
+    const { data } = await supabase
+      .from('data_privacy_logs' as any)
       .select('event_type, metadata')
       .eq('user_profile_id', prof.id)
       .order('created_at', { ascending: false })
@@ -130,7 +69,7 @@ export default function PrivacySettingsPage() {
     setError('')
     setSaving(true)
 
-    const { error: err } = await db.from('data_privacy_logs').insert({
+    const { error: err } = await supabase.from('data_privacy_logs' as any).insert({
       user_profile_id: profileId,
       event_type: 'consent_update',
       metadata: {
@@ -151,7 +90,7 @@ export default function PrivacySettingsPage() {
 
   async function handleExportRequest() {
     if (!profileId || exportRequested) return
-    const { error: err } = await db.from('data_privacy_logs').insert({
+    const { error: err } = await supabase.from('data_privacy_logs' as any).insert({
       user_profile_id: profileId,
       event_type: 'data_export_request',
       metadata: { requested_at: new Date().toISOString() },

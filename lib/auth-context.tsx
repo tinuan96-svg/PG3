@@ -52,38 +52,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [fetching, setFetching] = useState<string | null>(null)
 
   async function fetchOrCreateProfile(userId: string, userEmail?: string) {
-    // Use SECURITY DEFINER RPC to avoid RLS timing issues right after sign-in
-    const { data } = await supabase.rpc('get_my_profile')
-    const row = Array.isArray(data) ? data[0] : data
+    if (fetching === userId) return
+    setFetching(userId)
+    try {
+      // Use SECURITY DEFINER RPC to avoid RLS timing issues right after sign-in
+      const { data } = await supabase.rpc('get_my_profile')
+      const row = Array.isArray(data) ? data[0] : data
 
-    if (row) {
-      setProfile(rowToProfile(row as Record<string, unknown>))
-      return
+      if (row) {
+        setProfile(rowToProfile(row as Record<string, unknown>))
+        return
+      }
+
+      // First login for a new user — create their profile and wallet
+      const { data: newProfile } = await supabase.from('user_profiles')
+        .insert({
+          auth_user_id: userId,
+          email: userEmail ?? '',
+          full_name: '',
+          role: 'customer',
+        })
+        .select()
+        .maybeSingle()
+
+      await supabase
+        .from('wallets')
+        .insert({ user_id: userId, balance: 0 })
+        .select()
+        .maybeSingle()
+
+      if (newProfile) setProfile(rowToProfile(newProfile as Record<string, unknown>))
+
+      // Check and award daily login bonus
+      await awardDailyBonus(userId)
+    } finally {
+      setFetching(null)
     }
-
-    // First login for a new user — create their profile and wallet
-    const { data: newProfile } = await supabase.from('user_profiles')
-      .insert({
-        auth_user_id: userId,
-        email: userEmail ?? '',
-        full_name: '',
-        role: 'customer',
-      })
-      .select()
-      .maybeSingle()
-
-    await supabase
-      .from('wallets')
-      .insert({ user_id: userId, balance: 0 })
-      .select()
-      .maybeSingle()
-
-    if (newProfile) setProfile(rowToProfile(newProfile as Record<string, unknown>))
-
-    // Check and award daily login bonus
-    await awardDailyBonus(userId)
   }
 
   async function awardDailyBonus(userId: string) {
@@ -146,7 +153,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // INITIAL_SESSION, SIGNED_IN, USER_UPDATED → fetch/create profile
       if (currentUser) {
         (async () => {
-          console.log('[auth] fetching profile for event:', event)
           await fetchOrCreateProfile(currentUser.id, currentUser.email)
           setLoading(false)
         })()

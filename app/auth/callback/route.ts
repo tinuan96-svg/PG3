@@ -28,8 +28,11 @@ export async function GET(request: Request) {
     )
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+      // Use origin for absolute redirect if necessary, or just path if next starts with /
+      const redirectUrl = next.startsWith('http') ? next : `${origin}${next}`
+      return NextResponse.redirect(redirectUrl)
     }
+    console.error('[auth callback] exchange error:', error)
   }
 
   // return the user to an error page with instructions
