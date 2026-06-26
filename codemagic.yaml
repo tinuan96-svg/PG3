@@ -17,7 +17,41 @@ workflows:
           mkdir -p out
           touch out/index.html
       - name: Capacitor Sync
-        script: npx cap sync ios
+        script: |
+          # Ensure the plugin has a Package.swift if Capacitor 6 expects one
+          if [ -d "node_modules/@capacitor-community/apple-sign-in" ] && [ ! -f "node_modules/@capacitor-community/apple-sign-in/Package.swift" ]; then
+            echo "Adding missing Package.swift to @capacitor-community/apple-sign-in"
+            cat <<EOF > node_modules/@capacitor-community/apple-sign-in/Package.swift
+          // swift-tools-version: 5.9
+          import PackageDescription
+
+          let package = Package(
+              name: "CapacitorCommunityAppleSignIn",
+              platforms: [.iOS(.v15)],
+              products: [
+                  .library(
+                      name: "CapacitorCommunityAppleSignIn",
+                      targets: ["AppleSignInPlugin"])
+              ],
+              dependencies: [
+                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.3.3")
+              ],
+              targets: [
+                  .target(
+                      name: "AppleSignInPlugin",
+                      dependencies: [
+                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
+                          .product(name: "Cordova", package: "capacitor-swift-pm")
+                      ],
+                      path: "ios/Plugin")
+              ]
+          )
+          EOF
+            # Remove leading whitespace from the generated Package.swift
+            sed -i '' 's/^[[:space:]]\{10\}//' node_modules/@capacitor-community/apple-sign-in/Package.swift
+          fi
+          npx cap sync ios
+
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS IPA
@@ -56,7 +90,41 @@ workflows:
           mkdir -p out
           touch out/index.html
       - name: Capacitor Sync
-        script: npx cap sync ios
+        script: |
+          # Ensure the plugin has a Package.swift if Capacitor 6 expects one
+          if [ -d "node_modules/@capacitor-community/apple-sign-in" ] && [ ! -f "node_modules/@capacitor-community/apple-sign-in/Package.swift" ]; then
+            echo "Adding missing Package.swift to @capacitor-community/apple-sign-in"
+            cat <<EOF > node_modules/@capacitor-community/apple-sign-in/Package.swift
+          // swift-tools-version: 5.9
+          import PackageDescription
+
+          let package = Package(
+              name: "CapacitorCommunityAppleSignIn",
+              platforms: [.iOS(.v15)],
+              products: [
+                  .library(
+                      name: "CapacitorCommunityAppleSignIn",
+                      targets: ["AppleSignInPlugin"])
+              ],
+              dependencies: [
+                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.3.3")
+              ],
+              targets: [
+                  .target(
+                      name: "AppleSignInPlugin",
+                      dependencies: [
+                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
+                          .product(name: "Cordova", package: "capacitor-swift-pm")
+                      ],
+                      path: "ios/Plugin")
+              ]
+          )
+          EOF
+            # Remove leading whitespace from the generated Package.swift
+            sed -i '' 's/^[[:space:]]\{10\}//' node_modules/@capacitor-community/apple-sign-in/Package.swift
+          fi
+          npx cap sync ios
+
       - name: Build for Simulator
         script: |
           xcodebuild build \
