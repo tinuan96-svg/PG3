@@ -331,6 +331,40 @@ export default function NotificationPreferencesPage() {
 
             <div className="pt-2" />
 
+            {/* Push Notifications */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <div className="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <svg className="w-3.5 h-3.5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-bold text-gray-800">App Push Notifications</h3>
+              </div>
+              <div className="divide-y divide-gray-50 ml-9">
+                <PrefRow
+                  label="Order status updates"
+                  description="Real-time notifications about your order status and delivery."
+                  checked={prefs.push_order_updates}
+                  onChange={(v) => set('push_order_updates', v)}
+                />
+                <PrefRow
+                  label="Promotions & offers"
+                  description="Get notified about exclusive deals and discount codes."
+                  checked={prefs.push_promotions}
+                  onChange={(v) => set('push_promotions', v)}
+                />
+                <PrefRow
+                  label="Flash deals"
+                  description="Never miss a limited-time flash sale on top Kerala brands."
+                  checked={prefs.push_flash_deals}
+                  onChange={(v) => set('push_flash_deals', v)}
+                />
+              </div>
+            </div>
+
+            <div className="pt-2" />
+
             <div className="pt-4 border-t border-gray-100 mt-4 flex items-center gap-4">
               <button
                 type="submit"

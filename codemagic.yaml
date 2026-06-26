@@ -1,0 +1,68 @@
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      groups:
+        - app_store_credentials # Certificates and Profiles defined in Codemagic UI
+      vars:
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Build Next.js app (if needed for local files)
+        script: |
+          # If using static export, ensure output: 'export' in next.config.js
+          # If using live URL, this might just be a placeholder
+          mkdir -p out
+          touch out/index.html
+          # npm run build # Uncomment if you want a full build
+      - name: Capacitor Sync
+        script: npx cap sync ios
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build iOS
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --export-options-plist "$CM_EXPORT_OPTIONS_PLIST"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      email:
+        recipients:
+          - tinuan96@gmail.com
+
+  android-workflow:
+    name: Android Workflow
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      groups:
+        - google_play_credentials # Keystore and other secrets
+      vars:
+        PACKAGE_NAME: "com.pocketgrocery.app"
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Build Next.js app (if needed for local files)
+        script: |
+          mkdir -p out
+          touch out/index.html
+          # npm run build
+      - name: Capacitor Sync
+        script: npx cap sync android
+      - name: Build Android
+        script: |
+          cd android
+          ./gradlew assembleRelease
+    artifacts:
+      - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/bundle/release/*.aab
+    publishing:
+      email:
+        recipients:
+          - tinuan96@gmail.com
