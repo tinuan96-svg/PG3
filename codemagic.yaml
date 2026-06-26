@@ -22,8 +22,16 @@ workflows:
         script: xcode-project use-profiles
       - name: Build iOS IPA
         script: |
+          cd ios/App
+          # List available schemes for debugging
+          xcodebuild -list -project App.xcodeproj
+          
+          # Force resolution of SPM packages
+          xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme "$XCODE_SCHEME"
+          
+          # Build IPA using xcode-project with a more explicit path
           xcode-project build-ipa \
-            --project "$XCODE_PROJECT" \
+            --project App.xcodeproj \
             --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
