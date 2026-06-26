@@ -22,13 +22,9 @@ workflows:
         script: xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          # Use workspace if it exists, otherwise project
-          if [ -d "ios/App/App.xcworkspace" ]; then
-            XCODE_PATH="ios/App/App.xcworkspace"
-            xcode-project build-ipa --workspace "$XCODE_PATH" --scheme "$XCODE_SCHEME"
-          else
-            xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
-          fi
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
