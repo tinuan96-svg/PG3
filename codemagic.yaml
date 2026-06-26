@@ -19,20 +19,17 @@ workflows:
       - name: Capacitor Sync
         script: npx cap sync ios
       - name: Set up code signing
-        script: |
-          # Simplified command - relies on Codemagic UI Automatic Signing settings
-          xcode-project use-profiles
+        script: xcode-project use-profiles
+      - name: Debug schemes
+        script: xcodebuild -list -project ios/App/App.xcodeproj
       - name: Build iOS IPA
         script: |
           # Use workspace if it exists, otherwise project
           if [ -d "ios/App/App.xcworkspace" ]; then
-            xcode-project build-ipa \
-              --workspace "ios/App/App.xcworkspace" \
-              --scheme "$XCODE_SCHEME"
+            XCODE_PATH="ios/App/App.xcworkspace"
+            xcode-project build-ipa --workspace "$XCODE_PATH" --scheme "$XCODE_SCHEME"
           else
-            xcode-project build-ipa \
-              --project "$XCODE_PROJECT" \
-              --scheme "$XCODE_SCHEME"
+            xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
           fi
     artifacts:
       - build/ios/ipa/*.ipa
