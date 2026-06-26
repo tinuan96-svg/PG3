@@ -21,14 +21,11 @@ workflows:
           # npm run build # Uncomment if you want a full build
       - name: Capacitor Sync
         script: npx cap sync ios
-      - name: Set up code signing
-        script: xcode-project use-profiles
       - name: Build iOS
         script: |
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME" \
-            --export-options-plist "$CM_EXPORT_OPTIONS_PLIST"
+            --scheme "$XCODE_SCHEME"
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
