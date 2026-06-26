@@ -41,7 +41,6 @@
 		"KeyboardPlugin",
 		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
-		"StatusBarPlugin",
-		"AppleSignInPlugin"
+		"StatusBarPlugin"
 	]
 }

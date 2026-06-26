@@ -20,8 +20,6 @@ workflows:
         script: npx cap sync ios
       - name: Set up code signing
         script: xcode-project use-profiles
-      - name: Debug schemes
-        script: xcodebuild -list -project ios/App/App.xcodeproj
       - name: Build iOS IPA
         script: |
           # Use workspace if it exists, otherwise project
