@@ -48,8 +48,19 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 }
 
 async function callEdge(body: Record<string, unknown>, bearerToken?: string) {
-  // OneSignal removed
-  return { success: false, error: 'OneSignal removed' }
+  try {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/send-push-notification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${bearerToken || ANON_KEY}`,
+      },
+      body: JSON.stringify(body),
+    })
+    return await response.json()
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
 }
 
 export default function AdminNotificationsPage() {

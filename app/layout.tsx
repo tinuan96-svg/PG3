@@ -8,7 +8,7 @@ import { AuthProvider } from '@/lib/auth-context'
 import { PocketProvider } from '@/lib/pocket-context'
 import { WishlistProvider } from '@/lib/wishlist-context'
 import CachePurge from '@/components/CachePurge'
-import FirebaseInit from '@/components/FirebaseInit'
+import PushInit from '@/components/PushInit'
 import {
   generateOrganizationSchema,
   generateLocalBusinessSchema,
@@ -85,7 +85,7 @@ export default function RootLayout({
         <AuthProvider>
           <PocketProvider>
             <WishlistProvider>
-              <FirebaseInit />
+              <PushInit />
               <script
                 type="application/ld+json"
                 dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
