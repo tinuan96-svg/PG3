@@ -40,7 +40,6 @@
 		"KeyboardPlugin",
 		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
-		"StatusBarPlugin",
-		"OneSignalCapacitorPlugin"
+      "StatusBarPlugin"
 	]
 }
