@@ -9,7 +9,6 @@ workflows:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-        BUNDLE_ID: "com.pocketgrocery.app"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -21,25 +20,20 @@ workflows:
         script: npx cap sync ios
       - name: Set up code signing
         script: |
-          # Use the specific bundle ID and type to find the profile
-          xcode-project use-profiles --bundle-id "$BUNDLE_ID" --type app-store
+          # Simplified command - relies on Codemagic UI Automatic Signing settings
+          xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          # Detect workspace if it exists, otherwise use project
-          XCODE_PATH="$XCODE_PROJECT"
+          # Use workspace if it exists, otherwise project
           if [ -d "ios/App/App.xcworkspace" ]; then
-            XCODE_PATH="ios/App/App.xcworkspace"
+            xcode-project build-ipa \
+              --workspace "ios/App/App.xcworkspace" \
+              --scheme "$XCODE_SCHEME"
+          else
+            xcode-project build-ipa \
+              --project "$XCODE_PROJECT" \
+              --scheme "$XCODE_SCHEME"
           fi
-
-          if [ -z "$CM_EXPORT_OPTIONS_PLIST" ]; then
-            echo "Error: Provisioning profile not found for $BUNDLE_ID. Check Codemagic 'Code signing identities'."
-            exit 1
-          fi
-
-          xcode-project build-ipa \
-            --workspace "$XCODE_PATH" \
-            --scheme "$XCODE_SCHEME" \
-            --export-options-plist "$CM_EXPORT_OPTIONS_PLIST"
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
