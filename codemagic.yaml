@@ -5,10 +5,11 @@ workflows:
     max_build_duration: 60
     environment:
       groups:
-        - app_store_credentials # Certificates and Profiles defined in Codemagic UI
+        - app_store_credentials
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
+        BUNDLE_ID: "com.pocketgrocery.app"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -16,17 +17,27 @@ workflows:
         script: |
           mkdir -p out
           touch out/index.html
-          # npm run build
       - name: Capacitor Sync
         script: npx cap sync ios
       - name: Set up code signing
         script: |
-          # This step will fail if no certificates/profiles are uploaded to Codemagic
-          xcode-project use-profiles
+          # Use the specific bundle ID and type to find the profile
+          xcode-project use-profiles --bundle-id "$BUNDLE_ID" --type app-store
       - name: Build iOS IPA
         script: |
+          # Detect workspace if it exists, otherwise use project
+          XCODE_PATH="$XCODE_PROJECT"
+          if [ -d "ios/App/App.xcworkspace" ]; then
+            XCODE_PATH="ios/App/App.xcworkspace"
+          fi
+
+          if [ -z "$CM_EXPORT_OPTIONS_PLIST" ]; then
+            echo "Error: Provisioning profile not found for $BUNDLE_ID. Check Codemagic 'Code signing identities'."
+            exit 1
+          fi
+
           xcode-project build-ipa \
-            --project "$XCODE_PROJECT" \
+            --workspace "$XCODE_PATH" \
             --scheme "$XCODE_SCHEME" \
             --export-options-plist "$CM_EXPORT_OPTIONS_PLIST"
     artifacts:
@@ -52,13 +63,9 @@ workflows:
           mkdir -p out
           touch out/index.html
       - name: Capacitor Sync
-        script: |
-          npx cap sync ios
+        script: npx cap sync ios
       - name: Build for Simulator
         script: |
-          # Resolve SPM dependencies explicitly
-          xcodebuild -resolvePackageDependencies -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME"
-
           xcodebuild build \
             -project "$XCODE_PROJECT" \
             -scheme "$XCODE_SCHEME" \
