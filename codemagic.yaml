@@ -52,9 +52,13 @@ workflows:
           mkdir -p out
           touch out/index.html
       - name: Capacitor Sync
-        script: npx cap sync ios
+        script: |
+          npx cap sync ios
       - name: Build for Simulator
         script: |
+          # Resolve SPM dependencies explicitly
+          xcodebuild -resolvePackageDependencies -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME"
+
           xcodebuild build \
             -project "$XCODE_PROJECT" \
             -scheme "$XCODE_SCHEME" \
