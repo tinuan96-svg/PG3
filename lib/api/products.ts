@@ -44,14 +44,8 @@ interface DbProduct {
   brand: string | null
   weight_grams: number | null
   unit: string | null
-  is_bestseller: boolean
-  is_deal: boolean
-  is_new_arrival: boolean
-  is_trending: boolean
-  sold_count: number
-  rating: number
-  review_count: number
-  coin_reward: number | null
+  is_flash_deal?: boolean
+  show_on_homepage?: boolean
   // embedded join
   categories?: { id: string; name: string; slug: string } | null
 }
@@ -184,7 +178,7 @@ export function formatPackSize(weightGrams: number | null | undefined, unit: str
 
 // Only select columns that actually exist in the new schema.
 const PRODUCT_SELECT =
-  'id,name,slug,short_description,description,ingredients,nutritional_info,storage_instructions,how_to_use,image,gallery,price,compare_price,featured,category_id,sku,tags,approval_status,visibility_status,created_at,processed_image_url,thumbnail_url,brand,weight_grams,unit,is_bestseller,is_deal,is_new_arrival,is_trending,sold_count,rating,review_count,coin_reward,categories(id,name,slug)'
+  'id,name,slug,short_description,description,ingredients,nutritional_info,storage_instructions,how_to_use,image,gallery,price,compare_price,featured,category_id,sku,tags,approval_status,visibility_status,created_at,processed_image_url,thumbnail_url,brand,weight_grams,unit,is_flash_deal,show_on_homepage,categories(id,name,slug)'
 
 function postgrestProductsPath(query: ProductsQuery): string {
   const params = new URLSearchParams()
@@ -204,17 +198,18 @@ function postgrestProductsPath(query: ProductsQuery): string {
     params.set('featured', 'eq.true')
   }
   if (query.deals_only) {
-    params.set('is_deal', 'eq.true')
+    params.set('is_flash_deal', 'eq.true')
   }
   if (query.bestsellers_only) {
-    params.set('is_bestseller', 'eq.true')
+    // Fallback since is_bestseller column is missing
+    params.set('featured', 'eq.true')
   }
   if (query.new_arrivals_only) {
-    params.set('is_new_arrival', 'eq.true')
+    // Fallback since is_new_arrival column is missing, sort handles it
   }
 
   const sortMap: Record<string, string> = {
-    popular:    'sold_count.desc,featured.desc,created_at.desc',
+    popular:    'featured.desc,created_at.desc',
     newest:     'created_at.desc',
     price_asc:  'price.asc',
     price_desc: 'price.desc',
@@ -282,15 +277,15 @@ function dbRowToApiProduct(row: DbProduct): ApiProduct {
     category: row.categories?.name ?? 'Uncategorized',
     category_id: row.category_id ?? undefined,
     weight: formatPackSize(row.weight_grams, row.unit, null),
-    coin_reward: row.coin_reward ?? 0,
+    coin_reward: 0,
     stock: 999,    // new schema has no stock column; treat all approved products as in stock
     in_stock: true,
     allow_backorder: false,
     has_variants: false,
-    is_bestseller: row.is_bestseller ?? false,
-    is_deal: row.is_deal || isDeal,
-    is_new_arrival: row.is_new_arrival ?? false,
-    is_trending: row.is_trending ?? false,
+    is_bestseller: row.featured ?? false,
+    is_deal: row.is_flash_deal || isDeal,
+    is_new_arrival: true, // assume new if in DB for now
+    is_trending: row.featured ?? false,
     featured: row.featured ?? false,
     description: row.description ?? undefined,
     short_description: row.short_description ?? undefined,

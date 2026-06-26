@@ -108,7 +108,7 @@ export default function Header() {
   return (
     <>
       {/* ── DESKTOP HEADER ── */}
-      <header className="bg-white sticky top-0 z-50 border-b border-gray-100 hidden md:block">
+      <header className="bg-white sticky top-0 z-50 border-b border-gray-100 hidden md:block safe-pt">
         <div className="text-white py-1.5 px-4 text-center text-xs font-medium" style={{ backgroundColor: '#0F2747' }}>
           Free delivery on orders over £40 — Next day delivery across the UK
           <span className="ml-3 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ backgroundColor: '#5FAE9B' }}>
@@ -262,7 +262,7 @@ export default function Header() {
       </header>
 
       {/* ── MOBILE HEADER ── */}
-      <header className="md:hidden sticky top-0 z-50 shadow-sm" style={{ backgroundColor: '#0F2747' }}>
+      <header className="md:hidden sticky top-0 z-50 shadow-sm safe-pt" style={{ backgroundColor: '#0F2747' }}>
         {/* Row 1: Logo + Location + Icons */}
         <div className="px-4 pt-3 pb-2 flex items-center gap-2">
           {/* Logo */}

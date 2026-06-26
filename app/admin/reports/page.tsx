@@ -53,7 +53,7 @@ export default function ReportsPage() {
   const [customEnd, setCustomEnd] = useState('')
   const [data, setData] = useState<ReportData | null>(null)
   const [loading, setLoading] = useState(true)
-  const [recentOrders, setRecentOrders] = useState<{ id: string; created_at: string; total_amount: number | null; status: string; user_id: string }[]>([])
+  const [recentOrders, setRecentOrders] = useState<{ id: string; created_at: string; total: number | null; order_status: string; user_id: string }[]>([])
 
   async function loadData() {
     setLoading(true)
@@ -64,17 +64,17 @@ export default function ReportsPage() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const db = supabase as any
     const [ordersRes, recentRes] = await Promise.all([
-      db.from('orders').select('id,total_amount,status,user_id,created_at').gte('created_at', fromISO).lte('created_at', toISO),
-      db.from('orders').select('id,created_at,total_amount,status,user_id').order('created_at', { ascending: false }).limit(10),
+      db.from('orders').select('id,total,order_status,user_id,created_at').gte('created_at', fromISO).lte('created_at', toISO),
+      db.from('orders').select('id,created_at,total,order_status,user_id').order('created_at', { ascending: false }).limit(10),
     ])
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const orders: any[] = ordersRes.data ?? []
-    const revenue = orders.reduce((s: number, o: { total_amount?: number | null }) => s + (o.total_amount ?? 0), 0)
+    const revenue = orders.reduce((s: number, o: { total?: number | null }) => s + (o.total ?? 0), 0)
     const uniqueCustomers = new Set(orders.map((o: { user_id: string }) => o.user_id)).size
-    const completed = orders.filter((o) => o.status === 'completed' || o.status === 'delivered').length
-    const pending = orders.filter((o) => o.status === 'pending').length
-    const processing = orders.filter((o) => o.status === 'processing').length
+    const completed = orders.filter((o) => o.order_status === 'completed' || o.order_status === 'delivered').length
+    const pending = orders.filter((o) => o.order_status === 'pending').length
+    const processing = orders.filter((o) => o.order_status === 'processing').length
 
     setData({
       revenue,
@@ -238,10 +238,10 @@ export default function ReportsPage() {
                     <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell">
                       {new Date(o.created_at).toLocaleString('en-GB', { dateStyle: 'short', timeStyle: 'short' })}
                     </td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">{fmt(o.total_amount ?? 0)}</td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-900">{fmt(o.total ?? 0)}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_COLORS[o.status] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {o.status}
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_COLORS[o.order_status] ?? 'bg-gray-100 text-gray-600'}`}>
+                        {o.order_status}
                       </span>
                     </td>
                   </tr>

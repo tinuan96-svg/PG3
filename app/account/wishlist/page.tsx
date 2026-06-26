@@ -15,7 +15,7 @@ export default function WishlistPage() {
   function handleAddToCart(item: {
     id: string;
     name: string;
-    image_url: string | null;
+    image_url?: string;
     price: number;
   }) {
     addToCart({

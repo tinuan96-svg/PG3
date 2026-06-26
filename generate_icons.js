@@ -2,8 +2,8 @@ import sharp from 'sharp';
 import fs from 'fs';
 import path from 'path';
 
-const sourceImage = 'C:/Users/sruth/Downloads/ChatGPT Image Jun 25, 2026, 03_32_05 AM.png';
-const androidResDir = 'C:/Users/sruth/Downloads/project-bolt-sb1-xhhdmztn (1)/project/android/app/src/main/res';
+const sourceImage = path.join(process.cwd(), 'public', 'logo.png');
+const androidResDir = path.join(process.cwd(), 'android', 'app', 'src', 'main', 'res');
 
 const launcherSizes = {
     'mipmap-mdpi': 48,

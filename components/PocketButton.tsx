@@ -64,7 +64,7 @@ export default function PocketButton() {
             key="pocket-menu"
             className="fixed inset-x-4 z-50 md:hidden rounded-3xl overflow-hidden shadow-2xl"
             style={{
-              bottom: 'calc(env(safe-area-inset-bottom) + 88px)',
+              bottom: 'calc(env(safe-area-inset-bottom) + 90px)',
               background: 'linear-gradient(160deg, #0F2747 0%, #152f59 100%)',
               border: '1px solid rgba(255,255,255,0.08)',
             }}
@@ -170,12 +170,10 @@ export default function PocketButton() {
       </AnimatePresence>
 
       <div
-        className="fixed z-50 md:hidden flex items-center gap-3"
+        className="fixed z-50 md:hidden flex items-center justify-between px-4 w-full"
         style={{
-          bottom: 'calc(env(safe-area-inset-bottom) + 85px)',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 'max-content',
+          bottom: 'calc(env(safe-area-inset-bottom) + 20px)',
+          left: 0,
         }}
       >
         <motion.button

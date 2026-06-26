@@ -38,7 +38,9 @@
 	"packageClassList": [
 		"AppPlugin",
 		"KeyboardPlugin",
+		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
-		"StatusBarPlugin"
+		"StatusBarPlugin",
+		"OneSignalCapacitorPlugin"
 	]
 }

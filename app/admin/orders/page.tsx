@@ -89,15 +89,15 @@ export default function AdminOrdersPage() {
       .order('created_at', { ascending: false })
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
-    if (filter !== 'all') query = query.eq('order_status', filter)
+    if (filter !== 'all') query = query.eq('order_status', filter as any)
     if (search.trim()) {
       query = query.or(`order_number.ilike.%${search}%,shipping_name.ilike.%${search}%,shipping_email.ilike.%${search}%`)
     }
 
     const { data } = await query
-    setOrders((data ?? []) as Order[])
+    setOrders((data as any) as Order[])
     setLoading(false)
-  }, [filter, search, page])
+  }, [filter, search, page, PAGE_SIZE])
 
   useEffect(() => {
     setPage(0)
@@ -245,7 +245,7 @@ export default function AdminOrdersPage() {
         o.order_number,
         o.shipping_name,
         o.shipping_email,
-        o.status,
+        o.order_status,
         `£${Number(o.total).toFixed(2)}`,
         new Date(o.created_at).toLocaleDateString('en-GB'),
       ]),
@@ -554,7 +554,7 @@ export default function AdminOrdersPage() {
                 )}
               </div>
 
-              {NEXT_STATUS[selectedOrder.status] && (
+              {NEXT_STATUS[selectedOrder.order_status] && (
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     onClick={() => updateStatus(selectedOrder.id, NEXT_STATUS[selectedOrder.order_status])}

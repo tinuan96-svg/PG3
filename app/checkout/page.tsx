@@ -361,22 +361,7 @@ export default function CheckoutPage() {
   }
 
   function onSuccess(orderNumber: string) {
-    // Fire push notifications (non-blocking)
-    if (user?.id) {
-      getBearerToken().then((token) => {
-        fetch(`${SUPABASE_URL}/functions/v1/onesignal-push`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            action: 'send_to_user',
-            user_id: user.id,
-            title: 'Order Received',
-            message: `Your order #${orderNumber} has been placed successfully.`,
-            url: `${window.location.origin}/account/orders`,
-          }),
-        }).catch(() => {/* non-fatal */})
-      })
-    }
+    // OneSignal notifications removed
 
     // Save address to address book if guest opted in
     if (saveNewAddress && user && !selectedAddressId) {

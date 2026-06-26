@@ -111,7 +111,7 @@ export default function AIChatbot() {
       <div
         className="fixed z-[60] transition-all duration-300 ease-out"
         style={{
-          bottom: isOpen ? '0' : 'calc(env(safe-area-inset-bottom) + 85px)',
+          bottom: isOpen ? '0' : 'calc(env(safe-area-inset-bottom) + 20px)',
           left: isOpen ? '0' : '16px',
           right: isOpen ? '0' : 'auto',
           top: isOpen ? '0' : 'auto',

@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import AccountLayout from '@/components/AccountLayout'
 import { useAuth } from '@/lib/auth-context'
 import { supabase } from '@/lib/supabase'
-import { requestPermission, isPermissionGranted, setTags } from '@/lib/onesignal'
 
 interface Prefs {
   id?: string
@@ -99,12 +98,6 @@ export default function NotificationPreferencesPage() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
-  const [pushGranted, setPushGranted] = useState(false)
-  const [requestingPush, setRequestingPush] = useState(false)
-
-  useEffect(() => {
-    setPushGranted(isPermissionGranted())
-  }, [])
 
   const load = useCallback(async () => {
     if (!user) return
@@ -150,14 +143,6 @@ export default function NotificationPreferencesPage() {
     setPrefs((p) => ({ ...p, [key]: val }))
   }
 
-  async function handleEnablePush() {
-    setRequestingPush(true)
-    const granted = await requestPermission()
-    setPushGranted(granted)
-    if (!granted) setError('Push permission denied. Enable notifications in your browser settings.')
-    setRequestingPush(false)
-  }
-
   async function handleSave(e: React.FormEvent) {
     e.preventDefault()
     if (!profileId) return
@@ -182,11 +167,14 @@ export default function NotificationPreferencesPage() {
 
     let err
     if (prefs.id) {
-      const res = await supabase.from('communication_preferences').update(payload).eq('id', prefs.id)
+      // Don't include user_profile_id in update as it's likely fixed/non-updatable
+      const { user_profile_id, ...updatePayload } = payload
+      const res = await supabase.from('communication_preferences').update(updatePayload).eq('id', prefs.id)
       err = res.error
     } else {
       const res = await supabase.from('communication_preferences').insert(payload).select('id').maybeSingle()
-      if (res.data?.id) setPrefs((p) => ({ ...p, id: res.data.id }))
+      const newId = res.data?.id
+      if (newId) setPrefs((p) => ({ ...p, id: newId }))
       err = res.error
     }
 
@@ -196,24 +184,16 @@ export default function NotificationPreferencesPage() {
       setSaved(true)
       setTimeout(() => setSaved(false), 2500)
 
-      // Sync push prefs as OneSignal tags for server-side filtering
-      setTags({
-        pref_order_updates: String(prefs.push_order_updates),
-        pref_promotions: String(prefs.push_promotions),
-        pref_flash_deals: String(prefs.push_flash_deals),
-        pref_new_products: String(prefs.push_new_products),
-        pref_recipes: String(prefs.push_recipes),
-      }).catch(() => {})
-
       const channels = ['email', 'sms', 'whatsapp'] as const
       for (const ch of channels) {
+        const key = `${ch}_marketing` as keyof Prefs
         await supabase.from('consent_records').insert({
           user_profile_id: profileId,
           channel: ch,
           consent_type: 'marketing',
-          granted: prefs[`${ch}_marketing`],
+          granted: prefs[key] as boolean,
           source: 'account',
-        }).catch(() => {})
+        })
       }
     }
     setSaving(false)
@@ -350,69 +330,6 @@ export default function NotificationPreferencesPage() {
             </div>
 
             <div className="pt-2" />
-
-            {/* Push Notifications */}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#EBF4F1' }}>
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="#5FAE9B" strokeWidth={2} viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                  </svg>
-                </div>
-                <h3 className="text-sm font-bold text-gray-800">Push Notifications</h3>
-              </div>
-
-              {!pushGranted ? (
-                <div className="ml-9 mt-2 p-4 rounded-xl border border-gray-100 bg-gray-50 flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-800">Enable push notifications</p>
-                    <p className="text-xs text-gray-500 mt-0.5">Get instant updates on your orders and exclusive deals directly in your browser.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleEnablePush}
-                    disabled={requestingPush}
-                    className="flex-none px-4 py-2 rounded-xl text-white text-xs font-bold transition-all hover:opacity-90 disabled:opacity-60"
-                    style={{ backgroundColor: '#0F2747' }}
-                  >
-                    {requestingPush ? 'Enabling...' : 'Enable'}
-                  </button>
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-50 ml-9">
-                  <PrefRow
-                    label="Order updates"
-                    description="Order confirmations, status changes, and delivery alerts."
-                    checked={prefs.push_order_updates}
-                    onChange={(v) => set('push_order_updates', v)}
-                  />
-                  <PrefRow
-                    label="Promotions"
-                    description="Special offers, discounts, and seasonal campaigns."
-                    checked={prefs.push_promotions}
-                    onChange={(v) => set('push_promotions', v)}
-                  />
-                  <PrefRow
-                    label="Flash deals"
-                    description="Time-limited flash deal alerts before they sell out."
-                    checked={prefs.push_flash_deals}
-                    onChange={(v) => set('push_flash_deals', v)}
-                  />
-                  <PrefRow
-                    label="New products"
-                    description="Be first to know when new products arrive."
-                    checked={prefs.push_new_products}
-                    onChange={(v) => set('push_new_products', v)}
-                  />
-                  <PrefRow
-                    label="Recipes"
-                    description="Weekly recipe ideas featuring products we carry."
-                    checked={prefs.push_recipes}
-                    onChange={(v) => set('push_recipes', v)}
-                  />
-                </div>
-              )}
-            </div>
 
             <div className="pt-4 border-t border-gray-100 mt-4 flex items-center gap-4">
               <button

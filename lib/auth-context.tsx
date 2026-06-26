@@ -111,7 +111,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           'bonus',
           `Daily login bonus - ${new Date().toLocaleDateString('en-GB')}`
         )
-        console.log('[auth] Daily login bonus awarded')
       }
     } catch (err) {
       console.error('[auth] Failed to award daily bonus:', err)
@@ -145,7 +144,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // every hour, triggering re-renders across every admin page and causing
       // AdminGuard to briefly unmount its children (input focus loss).
       if (event === 'TOKEN_REFRESHED') {
-        console.log('[auth] token refreshed — skipping profile re-fetch')
         setLoading(false)
         return
       }
