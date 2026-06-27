@@ -9,7 +9,6 @@ workflows:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-        BUNDLE_ID: "com.pocketgrocery.app"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -19,52 +18,23 @@ workflows:
           touch out/index.html
       - name: Capacitor Sync
         script: |
-          # Robust cleanup of SPM separators and injection of missing Package.swift
+          # Clean SPM paths since we removed the problematic plugin
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
-          fi
-          
-          PLUGIN_DIR="node_modules/@capacitor-community/apple-sign-in"
-          if [ -d "$PLUGIN_DIR" ]; then
-            cat <<EOF > "$PLUGIN_DIR/Package.swift"
-          import PackageDescription
-          let package = Package(
-              name: "CapacitorCommunityAppleSignIn",
-              platforms: [.iOS(.v15)],
-              products: [.library(name: "CapacitorCommunityAppleSignIn", targets: ["AppleSignInPlugin"])],
-              dependencies: [.package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")],
-              targets: [
-                  .target(name: "AppleSignInPlugin", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm"), "AppleSignInPluginSwift"], path: "ios/Plugin", exclude: ["Plugin.swift"], publicHeadersPath: "."),
-                  .target(name: "AppleSignInPluginSwift", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm")], path: "ios/Plugin", exclude: ["Plugin.m", "Plugin.h", "Info.plist"])
-              ]
-          )
-          EOF
           fi
           npx cap sync ios
       - name: Set up code signing
         script: |
-          # Fetch only the profile we need for this bundle ID
-          xcode-project use-profiles --bundle-id "$BUNDLE_ID"
+          # Simplified command to fetch the profiles uploaded to Codemagic
+          xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          # Direct xcodebuild with explicit provisioning profile to force capability match
-          cd ios/App
-          xcodebuild archive \
-            -project App.xcodeproj \
-            -scheme "$XCODE_SCHEME" \
-            -archivePath build/App.xcarchive \
-            -configuration Release \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="PDZ7779Q9J" \
-            PROVISIONING_PROFILE="$CM_PROVISIONING_PROFILE_ID" \
-            CODE_SIGN_ENTITLEMENTS="App/App.entitlements"
-
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist "$CM_EXPORT_OPTIONS_PLIST"
+          # Standard build command that uses the profiles set up in the previous step
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
-      - ios/App/build/ipa/*.ipa
+      - build/ios/ipa/*.ipa
     publishing:
       email:
         recipients:
@@ -99,6 +69,10 @@ workflows:
             CODE_SIGNING_ALLOWED=NO
     artifacts:
       - ~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
+    publishing:
+      email:
+        recipients:
+          - tinuan96@gmail.com
 
   android-workflow:
     name: Android Workflow
