@@ -7,6 +7,12 @@ interface Props {
   params: { slug: string }
 }
 
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  return [{ slug: 'dummy' }]
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const data = await getStorePageData(params.slug, { pageSize: 0 })
   if (!data) return { title: 'Store Not Found' }

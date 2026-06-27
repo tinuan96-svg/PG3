@@ -22,7 +22,11 @@ function resolveUrl(raw: string | null | undefined): string {
   return raw
 }
 
-export const dynamic = 'force-dynamic'
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  return [{ slug: 'dummy' }]
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const product = await fetchProductDetail(params.slug)

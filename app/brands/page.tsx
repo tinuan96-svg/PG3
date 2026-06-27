@@ -7,8 +7,6 @@ export const metadata: Metadata = {
   description: 'Shop authentic Kerala grocery brands online in the UK. Nirapara, Eastern, Double Horse, Brahmins, Kitchen Treasures and more with next day delivery.',
 }
 
-export const dynamic = 'force-dynamic'
-
 const BRAND_COLORS = [
   '#c0392b', '#e67e22', '#8e44ad', '#16a085', '#2980b9', '#27ae60',
   '#d35400', '#e74c3c', '#f39c12', '#1abc9c', '#9b59b6', '#2c3e50',

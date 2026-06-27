@@ -3,8 +3,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 
-export const dynamic = 'force-dynamic'
-
 export const metadata: Metadata = {
   title: 'Shop By Food Type | PocketGrocery Kerala Groceries',
   description: 'Discover Kerala grocery collections by food type — vegetarian, non-veg, breakfast, lunch & dinner, instant cook, and party specials.',
@@ -51,7 +49,7 @@ export default async function CollectionsPage() {
                         {images.map((src, i) => (
                           <div key={i} className="relative overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={src} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER }} />
+                            <img src={src} alt="" className="w-full h-full object-cover" />
                           </div>
                         ))}
                       </div>

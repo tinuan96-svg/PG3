@@ -3,7 +3,11 @@ import { getRecipesWithAvailability } from '@/lib/recipes'
 import type { Metadata } from 'next'
 import CollectionClient from './CollectionClient'
 
-export const dynamic = 'force-dynamic'
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  return [{ slug: 'dummy' }]
+}
 
 interface Props { params: { slug: string } }
 

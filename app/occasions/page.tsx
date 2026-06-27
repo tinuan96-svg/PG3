@@ -3,8 +3,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 
-export const dynamic = 'force-dynamic'
-
 export const metadata: Metadata = {
   title: 'Shop By Occasion | PocketGrocery Kerala Groceries',
   description: 'One-click grocery baskets for every occasion — Onam Sadya, birthday parties, Christmas, Eid, Diwali, family meals and more.',
@@ -49,8 +47,7 @@ export default async function OccasionsPage() {
                         {images.map((src, i) => (
                           <div key={i} className="relative overflow-hidden">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={src} alt="" className="w-full h-full object-cover"
-                              onError={(e) => { (e.target as HTMLImageElement).src = PLACEHOLDER }} />
+                            <img src={src} alt="" className="w-full h-full object-cover" />
                           </div>
                         ))}
                       </div>

@@ -23,8 +23,6 @@ import {
   getCommunityFavoritesDB,
 } from '@/lib/db-products'
 
-export const dynamic = 'force-dynamic'
-
 export const metadata: Metadata = {
   title: 'PocketGrocery - Kerala Groceries Online UK | Next Day Delivery',
   description:

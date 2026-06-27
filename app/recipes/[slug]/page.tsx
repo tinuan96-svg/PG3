@@ -2,8 +2,11 @@ import { createClient } from '@supabase/supabase-js'
 import type { Metadata } from 'next'
 import RecipeDetailClient from './RecipeDetailClient'
 
-// Force dynamic for availability data (stock changes)
-export const dynamic = 'force-dynamic'
+export const dynamicParams = false
+
+export async function generateStaticParams() {
+  return [{ slug: 'dummy' }]
+}
 
 interface Props { params: { slug: string } }
 

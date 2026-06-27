@@ -3,6 +3,12 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import BundleDetailClient from './BundleDetailClient'
 
+export const dynamicParams = false
+
+export function generateStaticParams() {
+  return [{ slug: 'all' }]
+}
+
 interface Props {
   params: { slug: string }
 }
