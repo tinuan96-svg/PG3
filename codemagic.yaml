@@ -19,14 +19,13 @@ workflows:
           touch out/index.html
       - name: Capacitor Sync
         script: |
-          # Robust cleanup of SPM separators and injection of missing Package.swift
+          # Clean SPM paths and inject missing manifest for apple-sign-in
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
           fi
           
           PLUGIN_DIR="node_modules/@capacitor-community/apple-sign-in"
           if [ -d "$PLUGIN_DIR" ]; then
-            echo "Injecting Package.swift into apple-sign-in plugin..."
             cat <<EOF > "$PLUGIN_DIR/Package.swift"
           // swift-tools-version: 5.9
           import PackageDescription
@@ -45,6 +44,7 @@ workflows:
           npx cap sync ios
       - name: Set up code signing
         script: |
+          # Use profiles for the specific bundle ID
           xcode-project use-profiles
       - name: Build iOS IPA
         script: |
