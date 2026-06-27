@@ -7,7 +7,7 @@ workflows:
       groups:
         - app_store_credentials
       vars:
-        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_PROJECT: "App.xcodeproj"
         XCODE_SCHEME: "App"
     scripts:
       - name: Install dependencies
@@ -20,15 +20,29 @@ workflows:
         script: npx cap sync ios
       - name: Set up code signing
         script: |
-          # Simplified command without unrecognized flags
+          cd ios/App
           xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          xcode-project build-ipa \
-            --project "$XCODE_PROJECT" \
-            --scheme "$XCODE_SCHEME"
+          cd ios/App
+          # Force resolve SPM packages
+          xcodebuild -resolvePackageDependencies -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME"
+          
+          # Build and Archive
+          xcodebuild archive \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -archivePath build/App.xcarchive \
+            -configuration Release \
+            CODE_SIGN_STYLE=Manual
+
+          # Export IPA
+          xcodebuild -exportArchive \
+            -archivePath build/App.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist "$CM_EXPORT_OPTIONS_PLIST"
     artifacts:
-      - build/ios/ipa/*.ipa
+      - ios/App/build/ipa/*.ipa
     publishing:
       email:
         recipients:
@@ -37,6 +51,7 @@ workflows:
   ios-simulator-workflow:
     name: iOS Simulator Build (No Signing Required)
     instance_type: mac_mini_m2
+    max_build_duration: 60
     environment:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
@@ -62,10 +77,15 @@ workflows:
             CODE_SIGNING_ALLOWED=NO
     artifacts:
       - ~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
+    publishing:
+      email:
+        recipients:
+          - tinuan96@gmail.com
 
   android-workflow:
     name: Android Workflow
     instance_type: mac_mini_m2
+    max_build_duration: 60
     environment:
       groups:
         - google_play_credentials
