@@ -19,7 +19,7 @@ workflows:
           touch out/index.html
       - name: Capacitor Sync
         script: |
-          # Clean SPM paths and inject missing manifest for apple-sign-in
+          # Clean SPM paths and inject manifest
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
           fi
@@ -44,11 +44,11 @@ workflows:
           npx cap sync ios
       - name: Set up code signing
         script: |
-          # Simplified command without unrecognized flags
+          # Fetch the profile and download it to the builder
           xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          # Use the wrapper but with a fallback to direct xcodebuild if it fails
+          # We use xcode-project wrapper which handles the automatic signing injection better
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
