@@ -34,7 +34,7 @@ workflows:
                       targets: ["AppleSignInPlugin"])
               ],
               dependencies: [
-                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.3.3")
+                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")
               ],
               targets: [
                   .target(
@@ -107,7 +107,7 @@ workflows:
                       targets: ["AppleSignInPlugin"])
               ],
               dependencies: [
-                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", exact: "8.3.3")
+                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")
               ],
               targets: [
                   .target(
