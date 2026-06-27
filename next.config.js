@@ -15,13 +15,8 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
-  async redirects() {
-    return [
-      { source: '/abo', destination: '/about', permanent: true },
-      { source: '/contcat', destination: '/contact', permanent: true },
-      { source: '/categories/:slug', destination: '/products', permanent: false },
-    ]
-  },
+  // Note: Redirects are not supported with 'output: export'.
+  // Use middleware or client-side redirects if needed.
 }
 
 export default nextConfig

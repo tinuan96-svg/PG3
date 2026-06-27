@@ -9,6 +9,8 @@ workflows:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
+        NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -99,6 +101,8 @@ workflows:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
+        NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -185,6 +189,8 @@ workflows:
         - google_play_credentials
       vars:
         PACKAGE_NAME: "com.pocketgrocery.app"
+        NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
     scripts:
       - name: Install dependencies
         script: npm install
