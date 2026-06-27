@@ -9,7 +9,6 @@ workflows:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-        BUNDLE_ID: "com.pocketgrocery.app"
     scripts:
       - name: Install dependencies
         script: |
@@ -27,8 +26,8 @@ workflows:
           npx cap sync ios
       - name: Set up code signing
         script: |
-          # This will fetch the latest profile we just created
-          xcode-project use-profiles --bundle-id "$BUNDLE_ID"
+          # Simplified command without unrecognized flags
+          xcode-project use-profiles
       - name: Build iOS IPA
         script: |
           xcode-project build-ipa \
