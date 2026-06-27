@@ -9,7 +9,6 @@ workflows:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-        BUNDLE_ID: "com.pocketgrocery.app"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -19,38 +18,23 @@ workflows:
           touch out/index.html
       - name: Capacitor Sync
         script: |
-          # Robust cleanup of SPM separators
+          # Standard cleanup
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
           fi
           npx cap sync ios
       - name: Set up code signing
         script: |
-          # Fetch only the matching profile
+          # Fetch profiles from Apple Developer Portal
           xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          cd ios/App
-          # Explicitly resolve dependencies
-          xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme "$XCODE_SCHEME"
-          
-          # Archive with explicit settings to bridge the capability gap
-          xcodebuild archive \
-            -project App.xcodeproj \
-            -scheme "$XCODE_SCHEME" \
-            -archivePath build/App.xcarchive \
-            -configuration Release \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="PDZ7779Q9J" \
-            PROVISIONING_PROFILE_SPECIFIER="PocketGrocery2"
-
-          # Export IPA
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist "$CM_EXPORT_OPTIONS_PLIST"
+          # Use standard Codemagic build tool which matches profiles by bundle ID
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
-      - ios/App/build/ipa/*.ipa
+      - build/ios/ipa/*.ipa
     publishing:
       email:
         recipients:
