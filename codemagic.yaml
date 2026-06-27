@@ -12,57 +12,30 @@ workflows:
         BUNDLE_ID: "com.pocketgrocery.app"
     scripts:
       - name: Install dependencies
-        script: npm install
+        script: |
+          npm install
       - name: Build Next.js app
         script: |
           mkdir -p out
           touch out/index.html
       - name: Capacitor Sync
         script: |
+          # Ensure SPM separators are correct for Mac
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
-          fi
-          
-          PLUGIN_DIR="node_modules/@capacitor-community/apple-sign-in"
-          if [ -d "$PLUGIN_DIR" ]; then
-            cat <<EOF > "$PLUGIN_DIR/Package.swift"
-          // swift-tools-version: 5.9
-          import PackageDescription
-          let package = Package(
-              name: "CapacitorCommunityAppleSignIn",
-              platforms: [.iOS(.v15)],
-              products: [.library(name: "CapacitorCommunityAppleSignIn", targets: ["AppleSignInPlugin"])],
-              dependencies: [.package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")],
-              targets: [
-                  .target(name: "AppleSignInPlugin", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm"), "AppleSignInPluginSwift"], path: "ios/Plugin", exclude: ["Plugin.swift"], publicHeadersPath: "."),
-                  .target(name: "AppleSignInPluginSwift", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm")], path: "ios/Plugin", exclude: ["Plugin.m", "Plugin.h", "Info.plist"])
-              ]
-          )
-          EOF
           fi
           npx cap sync ios
       - name: Set up code signing
         script: |
-          xcode-project use-profiles
+          # This will fetch the latest profile we just created
+          xcode-project use-profiles --bundle-id "$BUNDLE_ID"
       - name: Build iOS IPA
         script: |
-          cd ios/App
-          # Explicitly pass the team and signing style to archive
-          xcodebuild archive \
-            -project App.xcodeproj \
-            -scheme "$XCODE_SCHEME" \
-            -archivePath build/App.xcarchive \
-            -configuration Release \
-            CODE_SIGN_STYLE=Manual \
-            DEVELOPMENT_TEAM="PDZ7779Q9J"
-
-          # Export IPA
-          xcodebuild -exportArchive \
-            -archivePath build/App.xcarchive \
-            -exportPath build/ipa \
-            -exportOptionsPlist "$CM_EXPORT_OPTIONS_PLIST"
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
     artifacts:
-      - ios/App/build/ipa/*.ipa
+      - build/ios/ipa/*.ipa
     publishing:
       email:
         recipients:
