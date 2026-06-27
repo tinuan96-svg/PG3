@@ -18,6 +18,12 @@ workflows:
           touch out/index.html
       - name: Capacitor Sync
         script: |
+          # Fix backslashes in the main Package.swift if generated on Windows
+          if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
+            echo "Fixing backslashes in ios/App/CapApp-SPM/Package.swift"
+            sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
+          fi
+
           # Ensure the plugin has a Package.swift if Capacitor 6 expects one
           if [ -d "node_modules/@capacitor-community/apple-sign-in" ] && [ ! -f "node_modules/@capacitor-community/apple-sign-in/Package.swift" ]; then
             echo "Adding missing Package.swift to @capacitor-community/apple-sign-in"
@@ -41,9 +47,22 @@ workflows:
                       name: "AppleSignInPlugin",
                       dependencies: [
                           .product(name: "Capacitor", package: "capacitor-swift-pm"),
+                          .product(name: "Cordova", package: "capacitor-swift-pm"),
+                          "AppleSignInPluginSwift"
+                      ],
+                      path: "ios/Plugin",
+                      exclude: ["Plugin.swift"],
+                      publicHeadersPath: "."
+                  ),
+                  .target(
+                      name: "AppleSignInPluginSwift",
+                      dependencies: [
+                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
                           .product(name: "Cordova", package: "capacitor-swift-pm")
                       ],
-                      path: "ios/Plugin")
+                      path: "ios/Plugin",
+                      exclude: ["Plugin.m", "Plugin.h", "Info.plist"]
+                  )
               ]
           )
           EOF
@@ -91,6 +110,12 @@ workflows:
           touch out/index.html
       - name: Capacitor Sync
         script: |
+          # Fix backslashes in the main Package.swift if generated on Windows
+          if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
+            echo "Fixing backslashes in ios/App/CapApp-SPM/Package.swift"
+            sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
+          fi
+
           # Ensure the plugin has a Package.swift if Capacitor 6 expects one
           if [ -d "node_modules/@capacitor-community/apple-sign-in" ] && [ ! -f "node_modules/@capacitor-community/apple-sign-in/Package.swift" ]; then
             echo "Adding missing Package.swift to @capacitor-community/apple-sign-in"
@@ -114,9 +139,22 @@ workflows:
                       name: "AppleSignInPlugin",
                       dependencies: [
                           .product(name: "Capacitor", package: "capacitor-swift-pm"),
+                          .product(name: "Cordova", package: "capacitor-swift-pm"),
+                          "AppleSignInPluginSwift"
+                      ],
+                      path: "ios/Plugin",
+                      exclude: ["Plugin.swift"],
+                      publicHeadersPath: "."
+                  ),
+                  .target(
+                      name: "AppleSignInPluginSwift",
+                      dependencies: [
+                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
                           .product(name: "Cordova", package: "capacitor-swift-pm")
                       ],
-                      path: "ios/Plugin")
+                      path: "ios/Plugin",
+                      exclude: ["Plugin.m", "Plugin.h", "Info.plist"]
+                  )
               ]
           )
           EOF
