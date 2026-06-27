@@ -5,13 +5,10 @@ workflows:
     max_build_duration: 60
     environment:
       groups:
-        - app_store_credentials # Ensure you have created this group in Codemagic with APP_STORE_CONNECT_KEY
+        - app_store_credentials
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-        # Use your real Supabase values here in Codemagic UI instead of these placeholders
-        NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -29,7 +26,6 @@ workflows:
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
           fi
-          # Handle apple-sign-in SPM mixed language issue
           if [ -d "node_modules/@capacitor-community/apple-sign-in" ] && [ ! -f "node_modules/@capacitor-community/apple-sign-in/Package.swift" ]; then
             cat <<EOF > node_modules/@capacitor-community/apple-sign-in/Package.swift
           // swift-tools-version: 5.9
@@ -63,7 +59,6 @@ workflows:
         auth: integration
         submit_to_testflight: true
 
-
   ios-simulator-workflow:
     name: iOS Simulator Build
     instance_type: mac_mini_m2
@@ -71,8 +66,6 @@ workflows:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
-        NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
     scripts:
       - name: Install dependencies
         script: npm install
@@ -129,8 +122,6 @@ workflows:
         - google_play_credentials
       vars:
         PACKAGE_NAME: "com.pocketgrocery.app"
-        NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
-        NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
     scripts:
       - name: Install dependencies
         script: npm install
