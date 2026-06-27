@@ -1,40 +1,40 @@
 {
 	"appId": "com.pocketgrocery.app",
 	"appName": "PocketGrocery",
-  "webDir": "out",
+	"webDir": "out",
 	"server": {
 		"url": "https://pocketgrocery.com",
 		"cleartext": false,
-      "androidScheme": "https",
-      "iosScheme": "https"
+		"androidScheme": "https",
+		"iosScheme": "https"
 	},
 	"ios": {
-      "contentInset": "automatic",
-      "backgroundColor": "#ffffff",
-      "allowMixedContent": false,
-      "overrideUserAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 Capacitor"
+		"contentInset": "automatic",
+		"backgroundColor": "#ffffff",
+		"allowMixedContent": false,
+		"overrideUserAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 Capacitor"
 	},
 	"android": {
 		"allowMixedContent": true,
-      "backgroundColor": "#ffffff",
-      "overrideUserAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36 Capacitor"
+		"backgroundColor": "#ffffff",
+		"overrideUserAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36 Capacitor"
 	},
 	"plugins": {
 		"SplashScreen": {
-          "launchShowDuration": 3000,
+			"launchShowDuration": 3000,
 			"backgroundColor": "#ffffff",
-          "showSpinner": true,
-          "androidScaleType": "CENTER_CROP",
-          "splashFullScreen": true,
-          "splashImmersive": true
+			"showSpinner": true,
+			"androidScaleType": "CENTER_CROP",
+			"splashFullScreen": true,
+			"splashImmersive": true
 		},
 		"GoogleAuth": {
 			"scopes": [
 				"profile",
 				"email"
 			],
-          "androidClientId": "75115921613-6cju6n4kiv2utkhof37ruqquu7ru7m13.apps.googleusercontent.com",
-          "iosClientId": "75115921613-ja3eu44bnuvukthof37ruqquu7ru7m13.apps.googleusercontent.com",
+			"androidClientId": "75115921613-6cju6n4kiv2utkhof37ruqquu7ru7m13.apps.googleusercontent.com",
+			"iosClientId": "75115921613-ja3eu44bnuvukthof37ruqquu7ru7m13.apps.googleusercontent.com",
 			"forceCodeForRefreshToken": true
 		},
 		"PushNotifications": {
@@ -43,21 +43,21 @@
 				"sound",
 				"alert"
 			]
-        },
-      "StatusBar": {
-        "style": "LIGHT",
-        "backgroundColor": "#0F2747"
-      },
-      "Keyboard": {
-        "resize": "body",
-        "style": "DARK",
-        "resizeOnFullScreen": true
-      },
-      "CapacitorCookies": {
-        "enabled": true
-      },
-      "CapacitorHttp": {
-        "enabled": true
+		},
+		"StatusBar": {
+			"style": "LIGHT",
+			"backgroundColor": "#0F2747"
+		},
+		"Keyboard": {
+			"resize": "body",
+			"style": "DARK",
+			"resizeOnFullScreen": true
+		},
+		"CapacitorCookies": {
+			"enabled": true
+		},
+		"CapacitorHttp": {
+			"enabled": true
 		}
 	},
 	"packageClassList": [
@@ -65,7 +65,7 @@
 		"KeyboardPlugin",
 		"PushNotificationsPlugin",
 		"SplashScreenPlugin",
-      "StatusBarPlugin",
-      "SignInWithApple"
+		"StatusBarPlugin",
+		"SignInWithApple"
 	]
 }
