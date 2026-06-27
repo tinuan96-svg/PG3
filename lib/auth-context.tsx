@@ -2,8 +2,12 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { useRouter } from 'next/navigation'
+import { Capacitor } from '@capacitor/core'
+import { App } from '@capacitor/app'
 import { supabase } from './supabase'
 import { addCoins } from './wallet'
+import { SITE_URL } from './seo'
 
 export type Profile = {
   id: string
@@ -53,6 +57,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [fetching, setFetching] = useState<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    // Handle Deep Links (for OAuth redirects back to the app)
+    if (Capacitor.isNativePlatform()) {
+      const handleAppUrlOpen = (event: { url: string }) => {
+        try {
+          const url = new URL(event.url)
+          // Handle com.pocketgrocery.app://auth/callback
+          if (url.host === 'auth' && url.pathname === '/callback') {
+            const searchParams = url.search
+            const hash = url.hash
+            // Use SITE_URL for an absolute redirect to hit the server-side route.ts
+            // or to let the client-side supabase client handle it if it's a hash.
+            window.location.href = `${SITE_URL}/auth/callback${searchParams}${hash}`
+          }
+        } catch (err) {
+          console.error('[auth] Deep link error:', err)
+        }
+      }
+
+      const setupDeepLinks = async () => {
+        // Add listener for future events
+        const listener = await App.addListener('appUrlOpen', handleAppUrlOpen)
+
+        // Handle the URL that launched the app (cold start)
+        const { url } = await App.getLaunchUrl() || {}
+        if (url) {
+          handleAppUrlOpen({ url })
+        }
+
+        return listener
+      }
+
+      const deepLinkHandler = setupDeepLinks()
+      return () => {
+        deepLinkHandler.then(h => h.remove())
+      }
+    }
+  }, [])
 
   async function fetchOrCreateProfile(userId: string, userEmail?: string) {
     if (fetching === userId) return

@@ -4,5 +4,5 @@
     <string name="title_activity_main">PocketGrocery</string>
     <string name="package_name">com.pocketgrocery.app</string>
     <string name="custom_url_scheme">com.pocketgrocery.app</string>
-    <string name="google_client_id">75115921613-ic6tp3qu8hr6hheh5i4e4g4i2t1d8p9u.apps.googleusercontent.com</string>
+    <string name="google_client_id">75115921613-6cju6n4kiv2utkhof37ruqquu7ru7m13.apps.googleusercontent.com</string>
 </resources>
