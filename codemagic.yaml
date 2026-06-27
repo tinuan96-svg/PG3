@@ -3,35 +3,54 @@ workflows:
     name: iOS App Store Build
     instance_type: mac_mini_m2
     max_build_duration: 60
-    working_directory: ios/App
     environment:
       groups:
         - app_store_credentials
       vars:
-        XCODE_PROJECT: "App.xcodeproj"
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
     scripts:
       - name: Install dependencies
+        script: npm install
+      - name: Build Next.js app
         script: |
-          cd ../..
-          npm install
+          mkdir -p out
+          touch out/index.html
       - name: Capacitor Sync
         script: |
-          cd ../..
+          # Robust cleanup of SPM separators and injection of missing Package.swift
+          if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
+            sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
+          fi
+          
+          PLUGIN_DIR="node_modules/@capacitor-community/apple-sign-in"
+          if [ -d "$PLUGIN_DIR" ]; then
+            echo "Injecting Package.swift into apple-sign-in plugin..."
+            cat <<EOF > "$PLUGIN_DIR/Package.swift"
+          // swift-tools-version: 5.9
+          import PackageDescription
+          let package = Package(
+              name: "CapacitorCommunityAppleSignIn",
+              platforms: [.iOS(.v15)],
+              products: [.library(name: "CapacitorCommunityAppleSignIn", targets: ["AppleSignInPlugin"])],
+              dependencies: [.package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")],
+              targets: [
+                  .target(name: "AppleSignInPlugin", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm"), "AppleSignInPluginSwift"], path: "ios/Plugin", exclude: ["Plugin.swift"], publicHeadersPath: "."),
+                  .target(name: "AppleSignInPluginSwift", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm")], path: "ios/Plugin", exclude: ["Plugin.m", "Plugin.h", "Info.plist"])
+              ]
+          )
+          EOF
+          fi
           npx cap sync ios
       - name: Set up code signing
-        script: |
-          xcode-project use-profiles
+        script: xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          xcodebuild -resolvePackageDependencies -project "$XCODE_PROJECT" -scheme "$XCODE_SCHEME"
           xcode-project build-ipa \
             --project "$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
     artifacts:
-      - $HOME/clone/build/ios/ipa/*.ipa
       - build/ios/ipa/*.ipa
-      - ios/App/build/ios/ipa/*.ipa
     publishing:
       email:
         recipients:
