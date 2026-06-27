@@ -1,14 +1,15 @@
 workflows:
   ios-workflow:
-    name: iOS Workflow (Physical Device)
+    name: iOS App Store Build
     instance_type: mac_mini_m2
     max_build_duration: 60
     environment:
       groups:
-        - app_store_credentials
+        - app_store_credentials # Ensure you have created this group in Codemagic with APP_STORE_CONNECT_KEY
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
         XCODE_SCHEME: "App"
+        # Use your real Supabase values here in Codemagic UI instead of these placeholders
         NEXT_PUBLIC_SUPABASE_URL: "https://placeholder.supabase.co"
         NEXT_PUBLIC_SUPABASE_ANON_KEY: "placeholder-key"
     scripts:
@@ -16,96 +17,56 @@ workflows:
         script: npm install
       - name: Build Next.js app
         script: |
-          # Move API routes out of app directory for static export
           if [ -d "app/api" ]; then
             mv app/api ./api-backup
           fi
           npm run build
-          # Move them back after build (optional for CI, but good practice)
           if [ -d "api-backup" ]; then
             mv api-backup app/api
           fi
       - name: Capacitor Sync
         script: |
-          # Fix backslashes in the main Package.swift if generated on Windows
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
-            echo "Fixing backslashes in ios/App/CapApp-SPM/Package.swift"
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
           fi
-
-          # Ensure the plugin has a Package.swift if Capacitor 6 expects one
+          # Handle apple-sign-in SPM mixed language issue
           if [ -d "node_modules/@capacitor-community/apple-sign-in" ] && [ ! -f "node_modules/@capacitor-community/apple-sign-in/Package.swift" ]; then
-            echo "Adding missing Package.swift to @capacitor-community/apple-sign-in"
             cat <<EOF > node_modules/@capacitor-community/apple-sign-in/Package.swift
           // swift-tools-version: 5.9
           import PackageDescription
-
           let package = Package(
               name: "CapacitorCommunityAppleSignIn",
               platforms: [.iOS(.v15)],
-              products: [
-                  .library(
-                      name: "CapacitorCommunityAppleSignIn",
-                      targets: ["AppleSignInPlugin"])
-              ],
-              dependencies: [
-                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")
-              ],
+              products: [.library(name: "CapacitorCommunityAppleSignIn", targets: ["AppleSignInPlugin"])],
+              dependencies: [.package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")],
               targets: [
-                  .target(
-                      name: "AppleSignInPlugin",
-                      dependencies: [
-                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                          .product(name: "Cordova", package: "capacitor-swift-pm"),
-                          "AppleSignInPluginSwift"
-                      ],
-                      path: "ios/Plugin",
-                      exclude: ["Plugin.swift"],
-                      publicHeadersPath: "."
-                  ),
-                  .target(
-                      name: "AppleSignInPluginSwift",
-                      dependencies: [
-                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                          .product(name: "Cordova", package: "capacitor-swift-pm")
-                      ],
-                      path: "ios/Plugin",
-                      exclude: ["Plugin.m", "Plugin.h", "Info.plist"]
-                  )
+                  .target(name: "AppleSignInPlugin", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm"), "AppleSignInPluginSwift"], path: "ios/Plugin", exclude: ["Plugin.swift"], publicHeadersPath: "."),
+                  .target(name: "AppleSignInPluginSwift", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm")], path: "ios/Plugin", exclude: ["Plugin.m", "Plugin.h", "Info.plist"])
               ]
           )
           EOF
-            # Remove leading whitespace from the generated Package.swift
             sed -i '' 's/^[[:space:]]\{10\}//' node_modules/@capacitor-community/apple-sign-in/Package.swift
           fi
           npx cap sync ios
-
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS IPA
         script: |
-          cd ios/App
-          # List available schemes for debugging
-          xcodebuild -list -project App.xcodeproj
-          
-          # Force resolution of SPM packages
-          xcodebuild -resolvePackageDependencies -project App.xcodeproj -scheme "$XCODE_SCHEME"
-          
-          # Build IPA using xcode-project with a more explicit path
           xcode-project build-ipa \
-            --project App.xcodeproj \
-            --scheme "$XCODE_SCHEME"
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME" \
+            --configuration Release
     artifacts:
       - build/ios/ipa/*.ipa
     publishing:
-      email:
-        recipients:
-          - tinuan96@gmail.com
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+
 
   ios-simulator-workflow:
-    name: iOS Simulator Build (No Signing Required)
+    name: iOS Simulator Build
     instance_type: mac_mini_m2
-    max_build_duration: 60
     environment:
       vars:
         XCODE_PROJECT: "ios/App/App.xcodeproj"
@@ -117,70 +78,36 @@ workflows:
         script: npm install
       - name: Build Next.js app
         script: |
-          # Move API routes out of app directory for static export
           if [ -d "app/api" ]; then
             mv app/api ./api-backup
           fi
           npm run build
-          # Move them back after build
           if [ -d "api-backup" ]; then
             mv api-backup app/api
           fi
       - name: Capacitor Sync
         script: |
-          # Fix backslashes in the main Package.swift if generated on Windows
           if [ -f "ios/App/CapApp-SPM/Package.swift" ]; then
-            echo "Fixing backslashes in ios/App/CapApp-SPM/Package.swift"
             sed -i '' 's/\\/\//g' ios/App/CapApp-SPM/Package.swift
           fi
-
-          # Ensure the plugin has a Package.swift if Capacitor 6 expects one
           if [ -d "node_modules/@capacitor-community/apple-sign-in" ] && [ ! -f "node_modules/@capacitor-community/apple-sign-in/Package.swift" ]; then
-            echo "Adding missing Package.swift to @capacitor-community/apple-sign-in"
             cat <<EOF > node_modules/@capacitor-community/apple-sign-in/Package.swift
           // swift-tools-version: 5.9
           import PackageDescription
-
           let package = Package(
               name: "CapacitorCommunityAppleSignIn",
               platforms: [.iOS(.v15)],
-              products: [
-                  .library(
-                      name: "CapacitorCommunityAppleSignIn",
-                      targets: ["AppleSignInPlugin"])
-              ],
-              dependencies: [
-                  .package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")
-              ],
+              products: [.library(name: "CapacitorCommunityAppleSignIn", targets: ["AppleSignInPlugin"])],
+              dependencies: [.package(url: "https://github.com/ionic-team/capacitor-swift-pm.git", from: "6.0.0")],
               targets: [
-                  .target(
-                      name: "AppleSignInPlugin",
-                      dependencies: [
-                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                          .product(name: "Cordova", package: "capacitor-swift-pm"),
-                          "AppleSignInPluginSwift"
-                      ],
-                      path: "ios/Plugin",
-                      exclude: ["Plugin.swift"],
-                      publicHeadersPath: "."
-                  ),
-                  .target(
-                      name: "AppleSignInPluginSwift",
-                      dependencies: [
-                          .product(name: "Capacitor", package: "capacitor-swift-pm"),
-                          .product(name: "Cordova", package: "capacitor-swift-pm")
-                      ],
-                      path: "ios/Plugin",
-                      exclude: ["Plugin.m", "Plugin.h", "Info.plist"]
-                  )
+                  .target(name: "AppleSignInPlugin", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm"), "AppleSignInPluginSwift"], path: "ios/Plugin", exclude: ["Plugin.swift"], publicHeadersPath: "."),
+                  .target(name: "AppleSignInPluginSwift", dependencies: [.product(name: "Capacitor", package: "capacitor-swift-pm"), .product(name: "Cordova", package: "capacitor-swift-pm")], path: "ios/Plugin", exclude: ["Plugin.m", "Plugin.h", "Info.plist"])
               ]
           )
           EOF
-            # Remove leading whitespace from the generated Package.swift
             sed -i '' 's/^[[:space:]]\{10\}//' node_modules/@capacitor-community/apple-sign-in/Package.swift
           fi
           npx cap sync ios
-
       - name: Build for Simulator
         script: |
           xcodebuild build \
@@ -193,15 +120,10 @@ workflows:
             CODE_SIGNING_ALLOWED=NO
     artifacts:
       - ~/Library/Developer/Xcode/DerivedData/**/Build/Products/Debug-iphonesimulator/*.app
-    publishing:
-      email:
-        recipients:
-          - tinuan96@gmail.com
 
   android-workflow:
     name: Android Workflow
     instance_type: mac_mini_m2
-    max_build_duration: 60
     environment:
       groups:
         - google_play_credentials
@@ -214,12 +136,10 @@ workflows:
         script: npm install
       - name: Build Next.js app
         script: |
-          # Move API routes out of app directory for static export
           if [ -d "app/api" ]; then
             mv app/api ./api-backup
           fi
           npm run build
-          # Move them back after build
           if [ -d "api-backup" ]; then
             mv api-backup app/api
           fi
@@ -232,7 +152,3 @@ workflows:
     artifacts:
       - android/app/build/outputs/apk/release/*.apk
       - android/app/build/outputs/bundle/release/*.aab
-    publishing:
-      email:
-        recipients:
-          - tinuan96@gmail.com
